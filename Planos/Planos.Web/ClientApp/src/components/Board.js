@@ -86,10 +86,12 @@ class Board extends Component {
 		let offset = 0;
         for (let i = 0; i < statuses.length; i++) {
 			const count = Math.round(Math.random() * 10);
-            this.state[`droppable${statuses[i].id}`] = getItems(count, offset);
+            this.state[this.getName(statuses[i].id)] = getItems(count, offset);
 			offset += count;
 		}
-	}
+    }
+
+    getName = id => `droppable${id}`;
 
     getList = id => this.state[id];
     
@@ -126,17 +128,18 @@ class Board extends Component {
     // Normally you would want to split things out into separate components.
     // But in this example everything is just done in one place for simplicity
     render() {
-		const columns = statuses.map((item1) => (
+		const me = this;
+		const columns = statuses.map((status) => (
 				<div className="col-sm-3">
                 <div>
-                    {item1.title}
+                    {status.title}
                  </div>
-                <Droppable droppableId={`droppable${item1.id}`}>
+                <Droppable droppableId={me.getName(status.id)}>
                     {(provided, snapshot) => (
 						<div
                             ref={provided.innerRef}
                             style={getListStyle(snapshot.isDraggingOver)}>
-                            {this.state[`droppable${item1.id}`].map((item, index) => (
+                            {me.getList(me.getName(status.id)).map((item, index) => (
 								<Draggable
                                     key={item.id}
                                     draggableId={item.id}
