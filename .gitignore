@@ -1,2 +1,4 @@
 /Planos/*.user
 /Planos/.vs
+/Planos/Planos.Web/bin
+/Planos/Planos.Web/obj
