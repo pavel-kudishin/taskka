@@ -3,10 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
-    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.3</TypeScriptToolsVersion>
     <IsPackable>false</IsPackable>
     <SpaRoot>ClientApp\</SpaRoot>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
+    <TypeScriptBuildMode>true</TypeScriptBuildMode>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,42 @@
     <Content Remove="$(SpaRoot)**" />
     <None Remove="$(SpaRoot)**" />
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ClientApp\src\App.test.tsx" />
+    <None Remove="ClientApp\src\App.tsx" />
+    <None Remove="ClientApp\src\components\Board.tsx" />
+    <None Remove="ClientApp\src\components\Counter.tsx" />
+    <None Remove="ClientApp\src\components\FetchData.tsx" />
+    <None Remove="ClientApp\src\components\Home.tsx" />
+    <None Remove="ClientApp\src\components\Layout.tsx" />
+    <None Remove="ClientApp\src\components\NavMenu.tsx" />
+    <None Remove="ClientApp\src\index.tsx" />
+    <None Remove="ClientApp\src\registerServiceWorker.ts" />
+    <None Remove="ClientApp\src\store\BoardStore.ts" />
+    <None Remove="ClientApp\src\store\configureStore.ts" />
+    <None Remove="ClientApp\src\store\Counter.ts" />
+    <None Remove="ClientApp\src\store\index.ts" />
+    <None Remove="ClientApp\src\store\WeatherForecasts.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\src\App.test.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\App.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\Board.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\Counter.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\FetchData.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\Home.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\Layout.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\NavMenu.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\index.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\registerServiceWorker.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\BoardStore.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\configureStore.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\Counter.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\index.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\WeatherForecasts.ts" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

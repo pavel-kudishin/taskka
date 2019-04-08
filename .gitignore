@@ -3,3 +3,5 @@
 /Planos/Planos.Web/bin
 /Planos/Planos.Web/obj
 /Planos/Planos.Web/ClientApp/node_modules/.cache/babel-loader
+
+/Planos/Planos.Web/*.user
