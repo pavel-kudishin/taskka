@@ -2,10 +2,11 @@
 import { IAppThunkAction } from './';
 import * as HttpClient from '../httpClient'
 
-const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null, board: [] };
+const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null, board: [], backgroundWorks: 0 };
 
 export interface IBoardState {
 	isLoading: boolean;
+	backgroundWorks: number;
 	board: HttpClient.StatusDto[];
 	isSuccess: boolean;
 	token: string | null;
@@ -26,9 +27,14 @@ interface IReceiveBoardAction {
 	board: HttpClient.StatusDto[];
 }
 
+interface IUpdateBoardAction {
+	type: 'UPDATE_BOARD';
+	data: { [key: string]: HttpClient.TaskDto[]};
+}
+
 interface ISetLoadingAction {
-	type: 'SET_LOADING';
-	isLoading: boolean;
+	type: 'SET_BACKGROUND_WORK';
+	isBackgroundWork: boolean;
 }
 
 interface IReceiveAccessTokenAction {
@@ -40,20 +46,19 @@ interface IReceiveAccessTokenAction {
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
 // declared type strings (and not any other arbitrary string).
 type KnownAction = IRequestBoardAction | IReceiveBoardAction | IReceiveAccessTokenAction
-	| ISetLoadingAction;
+	| ISetLoadingAction | IUpdateBoardAction;
 
 export const actionCreators = {
 	getAccessToken: (): IAppThunkAction<KnownAction> => (dispatch, getState) => {
 	},
 	getBoard: (): IAppThunkAction<KnownAction> => (dispatch, getState) => {
-		dispatch({ type: 'SET_LOADING', isLoading: true });
+		dispatch({ type: 'REQUEST_BOARD' });
 
 		const client: HttpClient.Client = createHttpClient('');
 		return client
 			.getBoard()
 			.then((board: HttpClient.StatusDto[]) => {
 				dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
-				dispatch({ type: 'SET_LOADING', isLoading: false });
 			});
 
 
@@ -70,9 +75,10 @@ export const actionCreators = {
 //
 //		dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
 	},
-	saveBoard: (rawData: { [key: string]: HttpClient.TaskDto[]; })
+	saveBoard: (rawData: { [key: string]: HttpClient.TaskDto[] })
 		: IAppThunkAction<KnownAction> => (dispatch, getState) => {
 		//dispatch({ type: 'SET_LOADING', isLoading: true });
+		dispatch({ type: 'UPDATE_BOARD', data: rawData });
 
 		const data: { [key: string]: string[]; } = {};
 		for (let statusId in rawData) {
@@ -85,7 +91,7 @@ export const actionCreators = {
 		return client
 			.saveBoardPriority(data)
 			.then(() => {
-				//dispatch({ type: 'SET_LOADING', isLoading: false });
+				dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: false });
 			});
 	},
 };
@@ -93,18 +99,43 @@ export const actionCreators = {
 export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownAction) => {
 	state = state || initialState;
 
-	if (action.type === 'SET_LOADING') {
+	if (action.type === 'SET_BACKGROUND_WORK') {
+		const newState = { ...state };
+		if (action.isBackgroundWork) {
+			newState.backgroundWorks++;
+		} else {
+			newState.backgroundWorks--;
+		}
+		return newState;
+	}
+	if (action.type === 'REQUEST_BOARD') {
 		return {
 			...state,
-			isLoading: action.isLoading
+			isLoading: true
 		};
 	}
 	if (action.type === 'RECEIVE_BOARD') {
 		return {
 			...state,
 			isSuccess: action.isSuccess,
-			board: action.board
+			board: action.board,
+			isLoading: false
 		};
+	}
+	if (action.type === 'UPDATE_BOARD') {
+		const newState = { ...state };
+		newState.backgroundWorks++;
+
+		for (let statusId in action.data) {
+			if (action.data.hasOwnProperty(statusId)) {
+				const status = newState.board.find((value: HttpClient.StatusDto) => value.id === statusId);
+				if (status) {
+					status.tasks = action.data[statusId];
+				}
+			}
+		}
+
+		return newState;
 	}
 
 	return state;

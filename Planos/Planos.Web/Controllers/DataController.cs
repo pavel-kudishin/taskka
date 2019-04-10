@@ -49,7 +49,7 @@ namespace Planos.Web.Controllers
 		[HttpPost("[action]")]
 		public async Task SaveBoardPriority([FromBody] Dictionary<string, List<Guid>> data)
 		{
-
+			await Task.Delay(TimeSpan.FromSeconds(2));
 		}
 
 		private static List<TaskDto> CreateTasks()

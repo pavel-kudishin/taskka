@@ -188,19 +188,21 @@ class Board extends Component<BoardProps> {
 	// Normally you would want to split things out into separate components.
 	// But in this example everything is just done in one place for simplicity
 	render() {
-		const me = this;
-		if (me.props.isLoading) {
+		if (this.props.isLoading) {
 			return (
 				<div>Идет загрузка...</div>
 				);
 		}
-		const columns = me.props.board.map(me.getColumn);
+		const columns = this.props.board.map(this.getColumn);
 		return (
-			<DragDropContext onDragEnd={this.onDragEnd}>
-				<div className="row">
-					{columns}
-				</div>
-			</DragDropContext>
+			<div>
+				<div>{this.props.backgroundWorks > 0 ? 'Идет обмен данными...' : ' '}</div>
+				<DragDropContext onDragEnd={this.onDragEnd}>
+					<div className="row">
+						{columns}
+					</div>
+				</DragDropContext>
+			</div>
 		);
 	}
 }
