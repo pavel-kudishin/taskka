@@ -4,31 +4,38 @@ import { actionCreators } from '../store/BoardStore';
 import { Component } from 'react';
 import * as React from 'react';
 import {
-    DragDropContext, Droppable, Draggable, DropResult, ResponderProvided,
-    DraggableLocation, DroppableStateSnapshot, DroppableProvided,
-    DraggableStateSnapshot, DraggableProvided
+	DragDropContext,
+	Droppable,
+	Draggable,
+	DropResult,
+	ResponderProvided,
+	DraggableLocation,
+	DroppableStateSnapshot,
+	DroppableProvided,
+	DraggableStateSnapshot,
+	DraggableProvided
 } from 'react-beautiful-dnd';
 import { RouterState } from 'react-router-redux';
 import { IApplicationState } from '../store';
 
 interface IStatus {
-    id: number;
-    title: string;
+	id: number;
+	title: string;
 }
 
 interface ITask {
-    id: string;
-    content: string;
+	id: string;
+	content: string;
 }
 
 const statuses: IStatus[] = [
 	{
 		id: 1,
-        title: 'План'
+		title: 'План'
 	},
 	{
 		id: 2,
-        title: 'В работе'
+		title: 'В работе'
 	},
 	{
 		id: 3,
@@ -45,7 +52,7 @@ const getItems = (count: number, offset: number = 0): ITask[] =>
 	Array.from({ length: count }, (v, k) => k).map(k => ({
 		id: `task-${k + offset}`,
 		content: `Реализовать отчет ${k + offset}`
-    } as ITask));
+	} as ITask));
 
 // a little function to help us with reordering the result
 const reorder = (list: ITask[], startIndex: number, endIndex: number): ITask[] => {
@@ -59,21 +66,25 @@ const reorder = (list: ITask[], startIndex: number, endIndex: number): ITask[] =
 /**
  * Moves an item from one list to another list.
  */
-const move = (source: ITask[], destination: ITask[], droppableSource: DraggableLocation, droppableDestination?: DraggableLocation | null | undefined): IColumns => {
+const move =
+(source: ITask[],
+	destination: ITask[],
+	droppableSource: DraggableLocation,
+	droppableDestination?: DraggableLocation | null | undefined): IColumns => {
 	const sourceClone = Array.from(source);
 	const destClone = Array.from(destination);
 	const [removed] = sourceClone.splice(droppableSource.index, 1);
 
-    if (droppableDestination) {
-        destClone.splice(droppableDestination.index, 0, removed);
-    }
+	if (droppableDestination) {
+		destClone.splice(droppableDestination.index, 0, removed);
+	}
 
-    const result: { [x: string]: ITask[] } = {};
+	const result: { [x: string]: ITask[] } = {};
 
-    result[droppableSource.droppableId] = sourceClone;
-    if (droppableDestination) {
-        result[droppableDestination.droppableId] = destClone;
-    }
+	result[droppableSource.droppableId] = sourceClone;
+	if (droppableDestination) {
+		result[droppableDestination.droppableId] = destClone;
+	}
 
 	return result;
 };
@@ -100,127 +111,144 @@ const getListStyle = (isDraggingOver: boolean) => ({
 });
 
 interface IBoardProps {
-    
+
 }
 
 interface IColumns {
-    [x: string]: ITask[]
+	[x: string]: ITask[]
 }
 
 interface IBoardState {
-    [x: string]: ITask[]
+	[x: string]: ITask[]
 }
 
 type BoardProps = IBoardProps
-    & RouterState;
+	& typeof actionCreators // ... plus action creators we've requested
+	& RouterState;
 
 class Board extends Component<BoardProps, IBoardState> {
-    constructor(props: BoardProps) {
+	constructor(props: BoardProps) {
 		super(props);
 
-        const state: IBoardState = {};
+		const state: IBoardState = {};
 		let offset = 0;
-        for (let i = 0; i < statuses.length; i++) {
+		for (let i = 0; i < statuses.length; i++) {
 			const count = Math.round(Math.random() * 10);
-            state[this.getName(statuses[i].id)] = getItems(count, offset);
+			state[this.getName(statuses[i].id)] = getItems(count, offset);
 			offset += count;
-        }
+		}
 
-        this.state = state;
-    }
+		this.state = state;
+	}
 
-    getName = (id: number) => `droppable${id}`;
+	componentDidMount() {
+		// This method is called when the component is first added to the document
+		this.ensureDataFetched();
+	}
 
-    getList = (id: string): ITask[] => this.state[id];
-    
-    onDragEnd = (result: DropResult, provided: ResponderProvided) => {
-        const { source, destination}: { source: DraggableLocation, destination?: DraggableLocation | null | undefined } = result;
+	componentDidUpdate() {
+		// This method is called when the route parameters change
+		this.ensureDataFetched();
+	}
 
-        // dropped outside the list
-        if (!destination) {
-            return;
-        }
+	ensureDataFetched() {
+		//const startDateIndex = parseInt(this.props.match.params.startDateIndex, 10) || 0;
+		this.props.getBoard();
+	}
 
-        if (source.droppableId === destination.droppableId) {
-            const items = reorder(
-                this.getList(source.droppableId),
-                source.index,
-                destination.index
-            );
+	getName = (id: number) => `droppable${id}`;
+
+	getList = (id: string): ITask[] => this.state[id];
+
+	onDragEnd = (result: DropResult, provided: ResponderProvided) => {
+		const { source, destination }:
+			{ source: DraggableLocation, destination?: DraggableLocation | null | undefined } = result;
+
+		// dropped outside the list
+		if (!destination) {
+			return;
+		}
+
+		if (source.droppableId === destination.droppableId) {
+			const items = reorder(
+				this.getList(source.droppableId),
+				source.index,
+				destination.index
+			);
 
 			const state = { [source.droppableId]: items };
 
-            this.setState(state);
-        } else {
-            const result = move(
-                this.getList(source.droppableId),
-                this.getList(destination.droppableId),
-                source,
-                destination
-            );
+			this.setState(state);
+		} else {
+			const result = move(
+				this.getList(source.droppableId),
+				this.getList(destination.droppableId),
+				source,
+				destination
+			);
 
-            this.setState(result);
-        }
-    };
+			this.setState(result);
+		}
+	};
 
-    // Normally you would want to split things out into separate components.
-    // But in this example everything is just done in one place for simplicity
-    render() {
+	// Normally you would want to split things out into separate components.
+	// But in this example everything is just done in one place for simplicity
+	render() {
 		const me = this;
 		const columns = statuses.map((status) => (
-				<div className="col-sm-3">
-                <div>
-                    {status.title}
-                 </div>
-                <Droppable droppableId={me.getName(status.id)}>
-                    {(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-						<div
-                            ref={provided.innerRef}
-                            style={getListStyle(snapshot.isDraggingOver)}>
-                            {me.getList(me.getName(status.id)).map((item, index) => (
+			<div className="col-sm-3" key={status.id}>
+					<div>
+						{status.title}
+					</div>
+					<Droppable droppableId={me.getName(status.id)}>
+						{(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+							<div
+								ref={provided.innerRef}
+								style={getListStyle(snapshot.isDraggingOver)}>
+								{me.getList(me.getName(status.id)).map((item, index) => (
 								<Draggable
-                                    key={item.id}
-                                    draggableId={item.id}
-                                    index={index}>
-                                    {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+									key={item.id}
+									draggableId={item.id}
+									index={index}>
+									{(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
 										<div
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                            style={getItemStyle(
+											ref={provided.innerRef}
+											{...provided.draggableProps}
+											{...provided.dragHandleProps}
+											style={getItemStyle(
 												snapshot.isDragging,
 												provided.draggableProps.style
 											)}>
-                                            {item.content}
-                                        </div>
+											{item.content}
+										</div>
 									)}
-                                </Draggable>
+								</Draggable>
 							))}
-                            {provided.placeholder}
-                        </div>
-					)}
-                </Droppable>
-            </div>
+								{provided.placeholder}
+							</div>
+						)}
+					</Droppable>
+				</div>
 			)
 		);
-        return (
-            <DragDropContext onDragEnd={this.onDragEnd}>
-                <div className="row">
-                    {columns}
-                </div>
-            </DragDropContext>
-        );
-    }
+		return (
+			<DragDropContext onDragEnd={this.onDragEnd}>
+				<div className="row">
+					{columns}
+				</div>
+			</DragDropContext>
+		);
+	}
 }
 
 // Wire up the React component to the Redux store
 let mapStateToProps = (state: IApplicationState, ownProps: any): BoardProps => {
-    const result: BoardProps = Object.assign({}, state.board, state.routing) as BoardProps;
-    return result;
+	const result = Object.assign({}, state.board, state.routing) as BoardProps;
+	return result;
 };
 
 
 export default connect(
-    mapStateToProps,
+	mapStateToProps,
 	dispatch => bindActionCreators(actionCreators, dispatch)
 )(Board);

@@ -1,9 +1,13 @@
 import * as React from 'react';
-import { Collapse, Container, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
+import {
+    Collapse, Container, Navbar, NavbarBrand,
+    NavbarToggler, NavItem, NavLink
+} from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { RouterState } from 'react-router-redux';
-
 import './NavMenu.css';
+import { IApplicationState } from '../store';
+import { connect } from 'react-redux';
 
 interface INavMenuProps {
 }
@@ -58,3 +62,16 @@ export default class NavMenu extends React.Component<NavMenuProps, INavMenuState
     );
   }
 }
+
+// Wire up the React component to the Redux store
+let mapStateToProps = (state: IApplicationState, ownProps: any): NavMenuProps => {
+    const result: NavMenuProps = Object.assign({}, state.routing) as NavMenuProps;
+    return result;
+};
+
+const navMenuConnected = connect(
+    mapStateToProps, // Selects which state properties are merged into the component's props
+)(NavMenu);
+
+export { navMenuConnected as NavMenu };
+

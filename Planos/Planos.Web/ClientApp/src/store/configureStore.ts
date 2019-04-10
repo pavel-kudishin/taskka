@@ -1,35 +1,50 @@
-import { applyMiddleware, combineReducers, compose, createStore } from 'redux';
+import {
+    applyMiddleware,
+    combineReducers,
+    compose,
+    createStore,
+    StoreEnhancerStoreCreator
+} from 'redux';
 import thunk from 'redux-thunk';
 import { routerReducer, routerMiddleware } from 'react-router-redux';
-import * as Counter from './Counter';
-import * as WeatherForecasts from './WeatherForecasts';
+import { History } from 'history';
 
-export default function configureStore (history, initialState) {
-  const reducers = {
-    counter: Counter.reducer,
-    weatherForecasts: WeatherForecasts.reducer
-  };
+export interface IInitialState {
+}
 
-  const middleware = [
-    thunk,
-    routerMiddleware(history)
-  ];
+export interface IWindow {
+    initialReduxState: IInitialState;
+    devToolsExtension?: () => any;
+}
 
-  // In development, use the browser's Redux dev tools extension if installed
-  const enhancers = [];
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  if (isDevelopment && typeof window !== 'undefined' && window.devToolsExtension) {
-    enhancers.push(window.devToolsExtension());
-  }
+export default function configureStore(history: History, initialState: IInitialState) {
+    const reducers = {
+        //weatherForecasts: WeatherForecasts.reducer
+    };
 
-  const rootReducer = combineReducers({
-    ...reducers,
-    routing: routerReducer
-  });
+    const middleware = [
+        thunk,
+        routerMiddleware(history)
+    ];
 
-  return createStore(
-    rootReducer,
-    initialState,
-    compose(applyMiddleware(...middleware), ...enhancers)
-  );
+    // In development, use the browser's Redux dev tools extension if installed
+    const enhancers: StoreEnhancerStoreCreator<{}>[] = [];
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const w = ((window as any) as IWindow);
+    if (isDevelopment && typeof window !== 'undefined' && w.devToolsExtension) {
+        enhancers.push(w.devToolsExtension());
+    }
+
+    const rootReducer = combineReducers({
+        ...reducers,
+        routing: routerReducer
+    });
+
+    const storeEnhancer = applyMiddleware(...middleware);
+    const enhancer = compose<StoreEnhancerStoreCreator<{}>>(storeEnhancer, ...enhancers);
+    return createStore(
+        rootReducer,
+        initialState,
+        enhancer
+    );
 }
