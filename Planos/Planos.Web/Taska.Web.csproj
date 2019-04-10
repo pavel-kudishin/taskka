@@ -13,6 +13,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.8.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +32,7 @@
     <None Remove="ClientApp\src\components\Home.tsx" />
     <None Remove="ClientApp\src\components\Layout.tsx" />
     <None Remove="ClientApp\src\components\NavMenu.tsx" />
+    <None Remove="ClientApp\src\httpClient.ts" />
     <None Remove="ClientApp\src\index.tsx" />
     <None Remove="ClientApp\src\registerServiceWorker.ts" />
     <None Remove="ClientApp\src\store\BoardStore.ts" />
@@ -45,6 +48,7 @@
     <TypeScriptCompile Include="ClientApp\src\components\Home.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\Layout.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\NavMenu.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\httpClient.ts" />
     <TypeScriptCompile Include="ClientApp\src\index.tsx" />
     <TypeScriptCompile Include="ClientApp\src\registerServiceWorker.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\BoardStore.ts" />

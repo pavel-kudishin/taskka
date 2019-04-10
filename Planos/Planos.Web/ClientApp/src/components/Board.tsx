@@ -1,6 +1,6 @@
 ﻿import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { actionCreators } from '../store/BoardStore';
+import { actionCreators, IBoardState } from '../store/BoardStore';
 import { Component } from 'react';
 import * as React from 'react';
 import {
@@ -118,19 +118,20 @@ interface IColumns {
 	[x: string]: ITask[]
 }
 
-interface IBoardState {
+interface IBoardInternalState {
 	[x: string]: ITask[]
 }
 
 type BoardProps = IBoardProps
+	& IBoardState
 	& typeof actionCreators // ... plus action creators we've requested
 	& RouterState;
 
-class Board extends Component<BoardProps, IBoardState> {
+class Board extends Component<BoardProps, IBoardInternalState> {
 	constructor(props: BoardProps) {
 		super(props);
 
-		const state: IBoardState = {};
+		const state: IBoardInternalState = {};
 		let offset = 0;
 		for (let i = 0; i < statuses.length; i++) {
 			const count = Math.round(Math.random() * 10);
@@ -148,7 +149,7 @@ class Board extends Component<BoardProps, IBoardState> {
 
 	componentDidUpdate() {
 		// This method is called when the route parameters change
-		this.ensureDataFetched();
+		//this.ensureDataFetched();
 	}
 
 	ensureDataFetched() {
@@ -195,6 +196,11 @@ class Board extends Component<BoardProps, IBoardState> {
 	// But in this example everything is just done in one place for simplicity
 	render() {
 		const me = this;
+		if (me.props.isLoading) {
+			return (
+				<div>Идет загрузка...</div>
+				);
+		}
 		const columns = statuses.map((status) => (
 			<div className="col-sm-3" key={status.id}>
 					<div>
