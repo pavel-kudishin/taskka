@@ -10,40 +10,46 @@ namespace Planos.Web.Controllers
 	[Route("api/[controller]")]
 	public class DataController : Controller
 	{
+		private static readonly List<StatusDto> _statuses = new List<StatusDto>()
+		{
+			new StatusDto()
+			{
+				Id = Guid.NewGuid(),
+				Title = "План",
+				Tasks = CreateTasks()
+			},
+			new StatusDto()
+			{
+				Id = Guid.NewGuid(),
+				Title = "В работе",
+				Tasks = CreateTasks()
+			},
+			new StatusDto()
+			{
+				Id = Guid.NewGuid(),
+				Title = "Тестирование",
+				Tasks = CreateTasks()
+			},
+			new StatusDto()
+			{
+				Id = Guid.NewGuid(),
+				Title = "Проверено",
+				Tasks = CreateTasks()
+			},
+		};
+
 		[HttpGet("[action]")]
 		public async Task<List<StatusDto>> GetBoard()
 		{
-			List<StatusDto> statuses = new List<StatusDto>()
-			{
-				new StatusDto()
-				{
-					Id = Guid.NewGuid(),
-					Title = "План",
-					Tasks = CreateTasks()
-				},
-				new StatusDto()
-				{
-					Id = Guid.NewGuid(),
-					Title = "В работе",
-					Tasks = CreateTasks()
-				},
-				new StatusDto()
-				{
-					Id = Guid.NewGuid(),
-					Title = "Тестирование",
-					Tasks = CreateTasks()
-				},
-				new StatusDto()
-				{
-					Id = Guid.NewGuid(),
-					Title = "Проверено",
-					Tasks = CreateTasks()
-				},
-			};
-
 			await Task.Delay(TimeSpan.FromSeconds(3));
 
-			return statuses;
+			return _statuses;
+		}
+
+		[HttpPost("[action]")]
+		public async Task SaveBoardPriority([FromBody] Dictionary<string, List<Guid>> data)
+		{
+
 		}
 
 		private static List<TaskDto> CreateTasks()
@@ -58,6 +64,7 @@ namespace Planos.Web.Controllers
 					{
 						Id = id,
 						Title = $"Реализовать отчет {id}",
+						Priority = index
 					};
 				})
 				.ToList();

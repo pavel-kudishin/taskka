@@ -2,10 +2,11 @@
 import { IAppThunkAction } from './';
 import * as HttpClient from '../httpClient'
 
-const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null };
+const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null, board: [] };
 
 export interface IBoardState {
 	isLoading: boolean;
+	board: HttpClient.StatusDto[];
 	isSuccess: boolean;
 	token: string | null;
 }
@@ -22,6 +23,7 @@ interface IRequestBoardAction {
 interface IReceiveBoardAction {
 	type: 'RECEIVE_BOARD';
 	isSuccess: boolean;
+	board: HttpClient.StatusDto[];
 }
 
 interface ISetLoadingAction {
@@ -49,9 +51,9 @@ export const actionCreators = {
 		const client: HttpClient.Client = createHttpClient('');
 		return client
 			.getBoard()
-			.then((res: HttpClient.StatusDto[]) => {
+			.then((board: HttpClient.StatusDto[]) => {
+				dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
 				dispatch({ type: 'SET_LOADING', isLoading: false });
-				return res;
 			});
 
 
@@ -67,7 +69,25 @@ export const actionCreators = {
 //		const forecasts = await response.json();
 //
 //		dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
-	}
+	},
+	saveBoard: (rawData: { [key: string]: HttpClient.TaskDto[]; })
+		: IAppThunkAction<KnownAction> => (dispatch, getState) => {
+		//dispatch({ type: 'SET_LOADING', isLoading: true });
+
+		const data: { [key: string]: string[]; } = {};
+		for (let statusId in rawData) {
+			if (rawData.hasOwnProperty(statusId)) {
+				data[statusId] = rawData[statusId].map((task) => task.id);
+			}
+		}
+
+		const client: HttpClient.Client = createHttpClient('');
+		return client
+			.saveBoardPriority(data)
+			.then(() => {
+				//dispatch({ type: 'SET_LOADING', isLoading: false });
+			});
+	},
 };
 
 export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownAction) => {
@@ -77,6 +97,13 @@ export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownA
 		return {
 			...state,
 			isLoading: action.isLoading
+		};
+	}
+	if (action.type === 'RECEIVE_BOARD') {
+		return {
+			...state,
+			isSuccess: action.isSuccess,
+			board: action.board
 		};
 	}
 

@@ -17,45 +17,10 @@ import {
 } from 'react-beautiful-dnd';
 import { RouterState } from 'react-router-redux';
 import { IApplicationState } from '../store';
-
-interface IStatus {
-	id: number;
-	title: string;
-}
-
-interface ITask {
-	id: string;
-	content: string;
-}
-
-const statuses: IStatus[] = [
-	{
-		id: 1,
-		title: 'План'
-	},
-	{
-		id: 2,
-		title: 'В работе'
-	},
-	{
-		id: 3,
-		title: 'Тестирование'
-	},
-	{
-		id: 4,
-		title: 'Проверено'
-	},
-];
-
-// fake data generator
-const getItems = (count: number, offset: number = 0): ITask[] =>
-	Array.from({ length: count }, (v, k) => k).map(k => ({
-		id: `task-${k + offset}`,
-		content: `Реализовать отчет ${k + offset}`
-	} as ITask));
+import * as HttpClient from '../httpClient'
 
 // a little function to help us with reordering the result
-const reorder = (list: ITask[], startIndex: number, endIndex: number): ITask[] => {
+const reorder = (list: HttpClient.TaskDto[], startIndex: number, endIndex: number): HttpClient.TaskDto[] => {
 	const result = Array.from(list);
 	const [removed] = result.splice(startIndex, 1);
 	result.splice(endIndex, 0, removed);
@@ -67,8 +32,8 @@ const reorder = (list: ITask[], startIndex: number, endIndex: number): ITask[] =
  * Moves an item from one list to another list.
  */
 const move =
-(source: ITask[],
-	destination: ITask[],
+	(source: HttpClient.TaskDto[],
+		destination: HttpClient.TaskDto[],
 	droppableSource: DraggableLocation,
 	droppableDestination?: DraggableLocation | null | undefined): IColumns => {
 	const sourceClone = Array.from(source);
@@ -79,7 +44,7 @@ const move =
 		destClone.splice(droppableDestination.index, 0, removed);
 	}
 
-	const result: { [x: string]: ITask[] } = {};
+	const result: { [x: string]: HttpClient.TaskDto[] } = {};
 
 	result[droppableSource.droppableId] = sourceClone;
 	if (droppableDestination) {
@@ -115,11 +80,7 @@ interface IBoardProps {
 }
 
 interface IColumns {
-	[x: string]: ITask[]
-}
-
-interface IBoardInternalState {
-	[x: string]: ITask[]
+	[x: string]: HttpClient.TaskDto[]
 }
 
 type BoardProps = IBoardProps
@@ -127,19 +88,9 @@ type BoardProps = IBoardProps
 	& typeof actionCreators // ... plus action creators we've requested
 	& RouterState;
 
-class Board extends Component<BoardProps, IBoardInternalState> {
+class Board extends Component<BoardProps> {
 	constructor(props: BoardProps) {
 		super(props);
-
-		const state: IBoardInternalState = {};
-		let offset = 0;
-		for (let i = 0; i < statuses.length; i++) {
-			const count = Math.round(Math.random() * 10);
-			state[this.getName(statuses[i].id)] = getItems(count, offset);
-			offset += count;
-		}
-
-		this.state = state;
 	}
 
 	componentDidMount() {
@@ -157,9 +108,7 @@ class Board extends Component<BoardProps, IBoardInternalState> {
 		this.props.getBoard();
 	}
 
-	getName = (id: number) => `droppable${id}`;
-
-	getList = (id: string): ITask[] => this.state[id];
+	getList = (id: string): HttpClient.StatusDto | undefined => this.props.board.find(e => e.id === id);
 
 	onDragEnd = (result: DropResult, provided: ResponderProvided) => {
 		const { source, destination }:
@@ -170,27 +119,71 @@ class Board extends Component<BoardProps, IBoardInternalState> {
 			return;
 		}
 
+		const sourceStatus = this.getList(source.droppableId);
+		if (sourceStatus == undefined) {
+			return;
+		}
 		if (source.droppableId === destination.droppableId) {
 			const items = reorder(
-				this.getList(source.droppableId),
+				sourceStatus!.tasks,
 				source.index,
 				destination.index
 			);
 
 			const state = { [source.droppableId]: items };
 
-			this.setState(state);
+			this.props.saveBoard(state);
 		} else {
+			const destinationStatus = this.getList(destination.droppableId);
+			if (!destinationStatus) {
+				return;
+			}
 			const result = move(
-				this.getList(source.droppableId),
-				this.getList(destination.droppableId),
+				sourceStatus!.tasks,
+				destinationStatus!.tasks,
 				source,
 				destination
 			);
 
-			this.setState(result);
+			this.props.saveBoard(result);
 		}
 	};
+
+	getColumn = (status: HttpClient.StatusDto) => (
+		<div className="col-sm-3" key={status.id}>
+			<div>
+				{status.title}
+			</div>
+			<Droppable droppableId={status.id}>
+				{(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
+					<div
+						ref={provided.innerRef}
+						style={getListStyle(snapshot.isDraggingOver)}>
+						{status.tasks.map((item, index) => (
+							<Draggable
+								key={item.id}
+								draggableId={item.id}
+								index={index}>
+								{(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+									<div
+										ref={provided.innerRef}
+										{...provided.draggableProps}
+										{...provided.dragHandleProps}
+										style={getItemStyle(
+											snapshot.isDragging,
+											provided.draggableProps.style
+										)}>
+										{item.title}
+									</div>
+								)}
+							</Draggable>
+						))}
+						{provided.placeholder}
+					</div>
+				)}
+			</Droppable>
+		</div>
+	);
 
 	// Normally you would want to split things out into separate components.
 	// But in this example everything is just done in one place for simplicity
@@ -201,42 +194,7 @@ class Board extends Component<BoardProps, IBoardInternalState> {
 				<div>Идет загрузка...</div>
 				);
 		}
-		const columns = statuses.map((status) => (
-			<div className="col-sm-3" key={status.id}>
-					<div>
-						{status.title}
-					</div>
-					<Droppable droppableId={me.getName(status.id)}>
-						{(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
-							<div
-								ref={provided.innerRef}
-								style={getListStyle(snapshot.isDraggingOver)}>
-								{me.getList(me.getName(status.id)).map((item, index) => (
-								<Draggable
-									key={item.id}
-									draggableId={item.id}
-									index={index}>
-									{(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-										<div
-											ref={provided.innerRef}
-											{...provided.draggableProps}
-											{...provided.dragHandleProps}
-											style={getItemStyle(
-												snapshot.isDragging,
-												provided.draggableProps.style
-											)}>
-											{item.content}
-										</div>
-									)}
-								</Draggable>
-							))}
-								{provided.placeholder}
-							</div>
-						)}
-					</Droppable>
-				</div>
-			)
-		);
+		const columns = me.props.board.map(me.getColumn);
 		return (
 			<DragDropContext onDragEnd={this.onDragEnd}>
 				<div className="row">
