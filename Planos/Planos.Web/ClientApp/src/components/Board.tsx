@@ -17,7 +17,8 @@ import {
 } from 'react-beautiful-dnd';
 import { RouterState } from 'react-router-redux';
 import { IApplicationState } from '../store';
-import * as HttpClient from '../httpClient'
+import * as HttpClient from '../httpClient';
+import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 
 // a little function to help us with reordering the result
 const reorder = (list: HttpClient.TaskDto[], startIndex: number, endIndex: number): HttpClient.TaskDto[] => {
@@ -79,6 +80,10 @@ interface IBoardProps {
 
 }
 
+interface IState {
+	hubConnection: HubConnection;
+}
+
 interface IColumns {
 	[x: string]: HttpClient.TaskDto[]
 }
@@ -88,7 +93,7 @@ type BoardProps = IBoardProps
 	& typeof actionCreators // ... plus action creators we've requested
 	& RouterState;
 
-class Board extends Component<BoardProps> {
+class Board extends Component<BoardProps, IState> {
 	constructor(props: BoardProps) {
 		super(props);
 	}
@@ -96,6 +101,22 @@ class Board extends Component<BoardProps> {
 	componentDidMount() {
 		// This method is called when the component is first added to the document
 		this.ensureDataFetched();
+
+		const hubConnection = new HubConnectionBuilder()
+			.withUrl('/signal-board')
+			.build();
+
+		this.setState({ hubConnection }, () => {
+			this.state.hubConnection
+				.start()
+				.then(() => console.log('Connection started!'))
+				.catch(err => console.log('Error while establishing connection: ' + err));
+
+			this.state.hubConnection.on('sendToAll', (nick, receivedMessage) => {
+				const text = `${nick}: ${receivedMessage}`;
+				console.log(text);
+			});
+		});
 	}
 
 	componentDidUpdate() {
@@ -147,6 +168,7 @@ class Board extends Component<BoardProps> {
 
 			this.props.saveBoard(result);
 		}
+		//this.state.hubConnection.invoke('sendToAll', 'Bob', 'Hello!');
 	};
 
 	getColumn = (status: HttpClient.StatusDto) => (

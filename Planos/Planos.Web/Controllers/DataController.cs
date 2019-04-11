@@ -1,15 +1,19 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Taska.Web.Dto;
+using Taska.Web.Hubs;
 
 namespace Planos.Web.Controllers
 {
 	[Route("api/[controller]")]
 	public class DataController : Controller
 	{
+		private readonly IHubContext<BoardHub, IBoardClient> _hubContext;
+
 		private static readonly List<StatusDto> _statuses = new List<StatusDto>()
 		{
 			new StatusDto()
@@ -38,6 +42,11 @@ namespace Planos.Web.Controllers
 			},
 		};
 
+		public DataController(IHubContext<BoardHub, IBoardClient> hubContext)
+		{
+			_hubContext = hubContext;
+		}
+
 		[HttpGet("[action]")]
 		public async Task<List<StatusDto>> GetBoard()
 		{
@@ -50,6 +59,8 @@ namespace Planos.Web.Controllers
 		public async Task SaveBoardPriority([FromBody] Dictionary<string, List<Guid>> data)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2));
+
+			await _hubContext.Clients.All.SendToAll("Alice", "Bye!");
 		}
 
 		private static List<TaskDto> CreateTasks()
