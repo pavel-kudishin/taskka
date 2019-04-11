@@ -60,7 +60,7 @@ namespace Planos.Web.Controllers
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2));
 
-			await _hubContext.Clients.All.SendToAll("Alice", "Bye!");
+			await _hubContext.Clients.All.SendToAll($"Alice {new Random().Next()}", $"Bye at {DateTime.Now}!");
 		}
 
 		private static List<TaskDto> CreateTasks()

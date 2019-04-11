@@ -109,8 +109,8 @@ class Board extends Component<BoardProps, IState> {
 		this.setState({ hubConnection }, () => {
 			this.state.hubConnection
 				.start()
-				.then(() => console.log('Connection started!'))
-				.catch(err => console.log('Error while establishing connection: ' + err));
+				.then(() => console.log('Board connection started!'))
+				.catch(err => console.log('Error while starting Board connection: ' + err));
 
 			this.state.hubConnection.on('sendToAll', (nick, receivedMessage) => {
 				const text = `${nick}: ${receivedMessage}`;
@@ -122,6 +122,13 @@ class Board extends Component<BoardProps, IState> {
 	componentDidUpdate() {
 		// This method is called when the route parameters change
 		//this.ensureDataFetched();
+	}
+
+	componentWillUnmount() {
+		this.state.hubConnection
+			.stop()
+			.then(() => console.log('Board connection stopped!'))
+			.catch(err => console.log('Error while stopping Board connection: ' + err));
 	}
 
 	ensureDataFetched() {
