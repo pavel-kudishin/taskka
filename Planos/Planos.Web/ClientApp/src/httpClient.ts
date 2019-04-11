@@ -20,7 +20,7 @@ export class Client {
 	/**
 	 * @return Success
 	 */
-	getBoard(): Promise<StatusDto[]> {
+	getBoard(): Promise<BoardDto> {
 		let url_ = this.baseUrl + "/api/Data/GetBoard";
 		url_ = url_.replace(/[?&]$/, "");
 
@@ -36,18 +36,14 @@ export class Client {
 		});
 	}
 
-	protected processGetBoard(response: Response): Promise<StatusDto[]> {
+	protected processGetBoard(response: Response): Promise<BoardDto> {
 		const status = response.status;
 		let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
 		if (status === 200) {
 			return response.text().then((_responseText) => {
 				let result200: any = null;
 				let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-				if (resultData200 && resultData200.constructor === Array) {
-					result200 = [] as any;
-					for (let item of resultData200)
-						result200!.push(StatusDto.fromJS(item));
-				}
+				result200 = resultData200 ? BoardDto.fromJS(resultData200) : new BoardDto();
 				return result200;
 			});
 		} else if (status !== 200 && status !== 204) {
@@ -55,33 +51,37 @@ export class Client {
 				return throwException("An unexpected server error occurred.", status, _responseText, _headers);
 			});
 		}
-		return Promise.resolve<StatusDto[]>(<any>null);
+		return Promise.resolve<BoardDto>(<any>null);
 	}
 
 	/**
-	 * @param tasks (optional) 
+	 * @param taskId (optional) 
+	 * @param priority (optional) 
+	 * @param statusId (optional) 
 	 * @return Success
 	 */
-	saveBoardChanges(tasks: TaskDto[] | null | undefined): Promise<void> {
-		let url_ = this.baseUrl + "/api/Data/SaveBoardChanges";
+	updateTask(taskId: number | null | undefined, priority: number | null | undefined, statusId: number | null | undefined): Promise<void> {
+		let url_ = this.baseUrl + "/api/Data/UpdateTask?";
+		if (taskId !== undefined)
+			url_ += "taskId=" + encodeURIComponent("" + taskId) + "&";
+		if (priority !== undefined)
+			url_ += "priority=" + encodeURIComponent("" + priority) + "&";
+		if (statusId !== undefined)
+			url_ += "statusId=" + encodeURIComponent("" + statusId) + "&";
 		url_ = url_.replace(/[?&]$/, "");
 
-		const content_ = JSON.stringify(tasks);
-
 		let options_ = <RequestInit>{
-			body: content_,
 			method: "POST",
 			headers: {
-				"Content-Type": "application/json",
 			}
 		};
 
 		return this.http.fetch(url_, options_).then((_response: Response) => {
-			return this.processSaveBoardChanges(_response);
+			return this.processUpdateTask(_response);
 		});
 	}
 
-	protected processSaveBoardChanges(response: Response): Promise<void> {
+	protected processUpdateTask(response: Response): Promise<void> {
 		const status = response.status;
 		let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
 		if (status === 200) {
@@ -97,10 +97,69 @@ export class Client {
 	}
 }
 
+export class BoardDto implements IBoardDto {
+	statuses!: StatusDto[];
+	tasks!: TaskDto[];
+
+	constructor(data?: IBoardDto) {
+		if (data) {
+			for (var property in data) {
+				if (data.hasOwnProperty(property))
+					(<any>this)[property] = (<any>data)[property];
+			}
+		}
+		if (!data) {
+			this.statuses = [];
+			this.tasks = [];
+		}
+	}
+
+	init(data?: any) {
+		if (data) {
+			if (data["statuses"] && data["statuses"].constructor === Array) {
+				this.statuses = [] as any;
+				for (let item of data["statuses"])
+					this.statuses!.push(StatusDto.fromJS(item));
+			}
+			if (data["tasks"] && data["tasks"].constructor === Array) {
+				this.tasks = [] as any;
+				for (let item of data["tasks"])
+					this.tasks!.push(TaskDto.fromJS(item));
+			}
+		}
+	}
+
+	static fromJS(data: any): BoardDto {
+		data = typeof data === 'object' ? data : {};
+		let result = new BoardDto();
+		result.init(data);
+		return result;
+	}
+
+	toJSON(data?: any) {
+		data = typeof data === 'object' ? data : {};
+		if (this.statuses && this.statuses.constructor === Array) {
+			data["statuses"] = [];
+			for (let item of this.statuses)
+				data["statuses"].push(item.toJSON());
+		}
+		if (this.tasks && this.tasks.constructor === Array) {
+			data["tasks"] = [];
+			for (let item of this.tasks)
+				data["tasks"].push(item.toJSON());
+		}
+		return data;
+	}
+}
+
+export interface IBoardDto {
+	statuses: StatusDto[];
+	tasks: TaskDto[];
+}
+
 export class StatusDto implements IStatusDto {
 	id!: number;
 	title!: string;
-	tasks!: TaskDto[];
 
 	constructor(data?: IStatusDto) {
 		if (data) {
@@ -109,20 +168,12 @@ export class StatusDto implements IStatusDto {
 					(<any>this)[property] = (<any>data)[property];
 			}
 		}
-		if (!data) {
-			this.tasks = [];
-		}
 	}
 
 	init(data?: any) {
 		if (data) {
 			this.id = data["id"];
 			this.title = data["title"];
-			if (data["tasks"] && data["tasks"].constructor === Array) {
-				this.tasks = [] as any;
-				for (let item of data["tasks"])
-					this.tasks!.push(TaskDto.fromJS(item));
-			}
 		}
 	}
 
@@ -137,11 +188,6 @@ export class StatusDto implements IStatusDto {
 		data = typeof data === 'object' ? data : {};
 		data["id"] = this.id;
 		data["title"] = this.title;
-		if (this.tasks && this.tasks.constructor === Array) {
-			data["tasks"] = [];
-			for (let item of this.tasks)
-				data["tasks"].push(item.toJSON());
-		}
 		return data;
 	}
 }
@@ -149,7 +195,6 @@ export class StatusDto implements IStatusDto {
 export interface IStatusDto {
 	id: number;
 	title: string;
-	tasks: TaskDto[];
 }
 
 export class TaskDto implements ITaskDto {

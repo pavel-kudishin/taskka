@@ -1,17 +1,18 @@
 ﻿import { Action, Reducer } from 'redux';
 import { IAppThunkAction } from './';
 import * as HttpClient from '../httpClient'
+import { cloneDeep } from 'lodash';
 
 export interface IColumns {
 	[x: string]: HttpClient.TaskDto[]
 }
 
-const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null, board: [], backgroundWorks: 0 };
+const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null, board: undefined, backgroundWorks: 0 };
 
 export interface IBoardState {
 	isLoading: boolean;
 	backgroundWorks: number;
-	board: HttpClient.StatusDto[];
+	board?: HttpClient.BoardDto;
 	isSuccess: boolean;
 	token: string | null;
 }
@@ -28,7 +29,7 @@ interface IRequestBoardAction {
 interface IReceiveBoardAction {
 	type: 'RECEIVE_BOARD';
 	isSuccess: boolean;
-	board: HttpClient.StatusDto[];
+	board: HttpClient.BoardDto;
 }
 
 interface ISetLoadingAction {
@@ -41,11 +42,17 @@ interface IReceiveAccessTokenAction {
 	token: string | undefined;
 }
 
+interface IUpdateTaskAction {
+	type: 'UPDATE_TASK';
+	taskId: number;
+	priority: number;
+	statusId: number;
+}
 
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
 // declared type strings (and not any other arbitrary string).
 type KnownAction = IRequestBoardAction | IReceiveBoardAction | IReceiveAccessTokenAction
-	| ISetLoadingAction;
+	| ISetLoadingAction | IUpdateTaskAction;
 
 export const actionCreators = {
 	getAccessToken: (): IAppThunkAction<KnownAction> => (dispatch, getState) => {
@@ -56,7 +63,7 @@ export const actionCreators = {
 		const client: HttpClient.Client = createHttpClient('');
 		return client
 			.getBoard()
-			.then((board: HttpClient.StatusDto[]) => {
+			.then((board: HttpClient.BoardDto) => {
 				dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
 			});
 //		if (startDateIndex === getState().weatherForecasts.startDateIndex) {
@@ -72,44 +79,18 @@ export const actionCreators = {
 //
 //		dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
 	},
-	saveBoard: (boardChanges: IColumns): IAppThunkAction<KnownAction> => (dispatch, getState) => {
-
-		dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: true });
-
-		const board: HttpClient.StatusDto[] = Array.from(getState().board.board);
-		for (let statusId in boardChanges) {
-			if (boardChanges.hasOwnProperty(statusId)) {
-				const status = board.find((status: HttpClient.StatusDto) => status.id.toString() === statusId);
-				if (status) {
-					status.tasks = boardChanges[statusId];
-					for (let i = 0; i < status.tasks.length; i++) {
-						const task = status.tasks[i];
-						task.statusId = status.id;
-						task.priority = i;
-					}
-				}
-			}
-		}
-
+	refreshBoard: (board: HttpClient.BoardDto): IAppThunkAction<KnownAction> => (dispatch, getState) => {
 		dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
-
-		const tasks: HttpClient.TaskDto[] = [];
-		for (let j = 0; j < board.length; j++) {
-			const statusDto = board[j];
-			for (let k = 0; k < statusDto.tasks.length; k++) {
-				tasks.push(statusDto.tasks[k]);
-			}
-		}
-
+	},
+	updateTask: (taskId: number, priority: number, statusId: number): IAppThunkAction<KnownAction> => (dispatch, getState) => {
+		dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: true });
+		dispatch({ type: 'UPDATE_TASK', taskId: taskId, priority: priority, statusId: statusId });
 		const client: HttpClient.Client = createHttpClient('');
 		return client
-			.saveBoardChanges(tasks)
+			.updateTask(taskId, priority, statusId)
 			.then(() => {
 				dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: false });
 			});
-		},
-	refreshBoard: (board: HttpClient.StatusDto[]): IAppThunkAction<KnownAction> => (dispatch, getState) => {
-		dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
 	},
 };
 
@@ -117,7 +98,7 @@ export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownA
 	state = state || initialState;
 
 	if (action.type === 'SET_BACKGROUND_WORK') {
-		const newState = { ...state };
+		const newState = cloneDeep(state);
 		if (action.isBackgroundWork) {
 			newState.backgroundWorks++;
 		} else {
@@ -126,18 +107,28 @@ export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownA
 		return newState;
 	}
 	if (action.type === 'REQUEST_BOARD') {
-		return {
-			...state,
-			isLoading: true
-		};
+		const newState = cloneDeep(state);
+		newState.isLoading = true;
+		return newState;
 	}
 	if (action.type === 'RECEIVE_BOARD') {
-		return {
-			...state,
-			isSuccess: action.isSuccess,
-			board: action.board,
-			isLoading: false
-		};
+		const newState = cloneDeep(state);
+		newState.isSuccess= action.isSuccess;
+		newState.board = action.board;
+		newState.isLoading = false;
+		return newState;
+	}
+	if (action.type === 'UPDATE_TASK') {
+		const newState = cloneDeep(state);
+		if (newState.board) {
+			const task = newState.board.tasks.find((t: HttpClient.TaskDto) => t.id === action.taskId);
+			if (task) {
+				task.priority = action.priority;
+				task.statusId = action.statusId;
+			}
+
+		}
+		return newState;
 	}
 
 	return state;

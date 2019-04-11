@@ -10,7 +10,7 @@ namespace Taska.Web.Dto
 		public string Title { get; set; }
 
 		[Required]
-		public int Priority { get; set; }
+		public decimal Priority { get; set; }
 
 		[Required]
 		public int StatusId { get; set; }

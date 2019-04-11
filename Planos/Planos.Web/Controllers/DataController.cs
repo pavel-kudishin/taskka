@@ -45,36 +45,40 @@ namespace Planos.Web.Controllers
 		}
 
 		[HttpGet("[action]")]
-		public async Task<List<StatusDto>> GetBoard()
+		public async Task<BoardDto> GetBoard()
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2));
 
-			List<StatusDto> statuses = GetStatuses();
-			return statuses;
-		}
+			BoardDto board = new BoardDto()
+			{
+				Statuses = _statuses,
+				Tasks = _tasks
+			};
 
-		private static List<StatusDto> GetStatuses()
-		{
-			ILookup<int, TaskDto> taskLookup = _tasks.ToLookup(t => t.StatusId);
-
-			return _statuses.Select(s => new StatusDto()
-				{
-					Id = s.Id,
-					Title = s.Title,
-					Tasks = taskLookup[s.Id]
-				})
-				.ToList();
+			return board;
 		}
 
 		[HttpPost("[action]")]
-		public async Task SaveBoardChanges([FromBody] List<TaskDto> tasks)
+		public async Task UpdateTask(int taskId, decimal priority, int statusId)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2));
 
-			_tasks = tasks;
+			TaskDto task = _tasks.FirstOrDefault(t => t.Id == taskId);
+			if (task == null)
+			{
+				return;
+			}
 
-			List<StatusDto> statuses = GetStatuses();
-			await _hubContext.Clients.All.RefreshBoard(statuses);
+			task.Priority = priority;
+			task.StatusId = statusId;
+
+			BoardDto board = new BoardDto()
+			{
+				Statuses = _statuses,
+				Tasks = _tasks
+			};
+
+			await _hubContext.Clients.All.RefreshBoard(board);
 		}
 
 		private static List<TaskDto> CreateTasks()
