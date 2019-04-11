@@ -56,17 +56,43 @@ namespace Planos.Web.Controllers
 		}
 
 		[HttpPost("[action]")]
-		public async Task SaveBoardPriority([FromBody] Dictionary<string, List<Guid>> data)
+		public async Task SaveBoardPriority([FromBody] Dictionary<Guid, List<Guid>> data)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2));
 
-			await _hubContext.Clients.All.SendToAll($"Alice {new Random().Next()}", $"Bye at {DateTime.Now}!");
+			UpdatePriority();
+
+			await _hubContext.Clients.All.RefreshBoard(_statuses);
+
+			void UpdatePriority()
+			{
+				foreach ((Guid statusId, List<Guid> taskIds) in data)
+				{
+					StatusDto statusDto = _statuses.FirstOrDefault(s => s.Id == statusId);
+					if (statusDto == null)
+					{
+						continue;
+					}
+
+					for (int index = 0; index < taskIds.Count; index++)
+					{
+						Guid taskId = taskIds[index];
+						TaskDto task = statusDto.Tasks.FirstOrDefault(t => t.Id == taskId);
+						if (task != null)
+						{
+							task.Priority = index;
+						}
+					}
+
+					statusDto.Tasks = statusDto.Tasks.OrderBy(t => t.Priority).ToList();
+				}
+			}
 		}
 
 		private static List<TaskDto> CreateTasks()
 		{
 			Random rng = new Random();
-			int count = rng.Next(100);
+			int count = rng.Next(10);
 
 			List<TaskDto> tasks = Enumerable.Range(1, count).Select(index =>
 				{

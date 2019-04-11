@@ -116,6 +116,10 @@ class Board extends Component<BoardProps, IState> {
 				const text = `${nick}: ${receivedMessage}`;
 				console.log(text);
 			});
+			this.state.hubConnection.on('RefreshBoard', (board: HttpClient.StatusDto[]) => {
+				console.log('RefreshBoard');
+				this.props.refreshBoard(board);
+			});
 		});
 	}
 

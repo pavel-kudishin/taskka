@@ -93,6 +93,9 @@ export const actionCreators = {
 			.then(() => {
 				dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: false });
 			});
+		},
+	refreshBoard: (board: HttpClient.StatusDto[]): IAppThunkAction<KnownAction> => (dispatch, getState) => {
+		dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
 	},
 };
 
