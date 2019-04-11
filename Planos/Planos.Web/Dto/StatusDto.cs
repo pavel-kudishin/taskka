@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Taska.Web.Dto
@@ -7,10 +6,10 @@ namespace Taska.Web.Dto
 	public class StatusDto
 	{
 		[Required]
-		public Guid Id { get; set; }
+		public int Id { get; set; }
 		[Required]
 		public string Title { get; set; }
 		[Required]
-		public List<TaskDto> Tasks { get; set; }
+		public IEnumerable<TaskDto> Tasks { get; set; }
 	}
 }

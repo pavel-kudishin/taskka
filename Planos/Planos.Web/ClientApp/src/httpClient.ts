@@ -59,14 +59,14 @@ export class Client {
 	}
 
 	/**
-	 * @param data (optional) 
+	 * @param tasks (optional) 
 	 * @return Success
 	 */
-	saveBoardPriority(data: { [key: string]: string[]; } | null | undefined): Promise<void> {
-		let url_ = this.baseUrl + "/api/Data/SaveBoardPriority";
+	saveBoardChanges(tasks: TaskDto[] | null | undefined): Promise<void> {
+		let url_ = this.baseUrl + "/api/Data/SaveBoardChanges";
 		url_ = url_.replace(/[?&]$/, "");
 
-		const content_ = JSON.stringify(data);
+		const content_ = JSON.stringify(tasks);
 
 		let options_ = <RequestInit>{
 			body: content_,
@@ -77,11 +77,11 @@ export class Client {
 		};
 
 		return this.http.fetch(url_, options_).then((_response: Response) => {
-			return this.processSaveBoardPriority(_response);
+			return this.processSaveBoardChanges(_response);
 		});
 	}
 
-	protected processSaveBoardPriority(response: Response): Promise<void> {
+	protected processSaveBoardChanges(response: Response): Promise<void> {
 		const status = response.status;
 		let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
 		if (status === 200) {
@@ -98,7 +98,7 @@ export class Client {
 }
 
 export class StatusDto implements IStatusDto {
-	id!: string;
+	id!: number;
 	title!: string;
 	tasks!: TaskDto[];
 
@@ -147,15 +147,16 @@ export class StatusDto implements IStatusDto {
 }
 
 export interface IStatusDto {
-	id: string;
+	id: number;
 	title: string;
 	tasks: TaskDto[];
 }
 
 export class TaskDto implements ITaskDto {
-	id!: string;
+	id!: number;
 	title!: string;
 	priority!: number;
+	statusId!: number;
 
 	constructor(data?: ITaskDto) {
 		if (data) {
@@ -171,6 +172,7 @@ export class TaskDto implements ITaskDto {
 			this.id = data["id"];
 			this.title = data["title"];
 			this.priority = data["priority"];
+			this.statusId = data["statusId"];
 		}
 	}
 
@@ -186,14 +188,16 @@ export class TaskDto implements ITaskDto {
 		data["id"] = this.id;
 		data["title"] = this.title;
 		data["priority"] = this.priority;
+		data["statusId"] = this.statusId;
 		return data;
 	}
 }
 
 export interface ITaskDto {
-	id: string;
+	id: number;
 	title: string;
 	priority: number;
+	statusId: number;
 }
 
 export class SwaggerException extends Error {

@@ -13,34 +13,31 @@ namespace Planos.Web.Controllers
 	public class DataController : Controller
 	{
 		private readonly IHubContext<BoardHub, IBoardClient> _hubContext;
-
 		private static readonly List<StatusDto> _statuses = new List<StatusDto>()
 		{
 			new StatusDto()
 			{
-				Id = Guid.NewGuid(),
+				Id = GetUniqueId(),
 				Title = "План",
-				Tasks = CreateTasks()
 			},
 			new StatusDto()
 			{
-				Id = Guid.NewGuid(),
+				Id = GetUniqueId(),
 				Title = "В работе",
-				Tasks = CreateTasks()
 			},
 			new StatusDto()
 			{
-				Id = Guid.NewGuid(),
+				Id = GetUniqueId(),
 				Title = "Тестирование",
-				Tasks = CreateTasks()
 			},
 			new StatusDto()
 			{
-				Id = Guid.NewGuid(),
+				Id = GetUniqueId(),
 				Title = "Проверено",
-				Tasks = CreateTasks()
 			},
 		};
+		private static List<TaskDto> _tasks = CreateTasks();
+		private static int _uniqueId;
 
 		public DataController(IHubContext<BoardHub, IBoardClient> hubContext)
 		{
@@ -50,62 +47,60 @@ namespace Planos.Web.Controllers
 		[HttpGet("[action]")]
 		public async Task<List<StatusDto>> GetBoard()
 		{
-			await Task.Delay(TimeSpan.FromSeconds(3));
+			await Task.Delay(TimeSpan.FromSeconds(2));
 
-			return _statuses;
+			List<StatusDto> statuses = GetStatuses();
+			return statuses;
+		}
+
+		private static List<StatusDto> GetStatuses()
+		{
+			ILookup<int, TaskDto> taskLookup = _tasks.ToLookup(t => t.StatusId);
+
+			return _statuses.Select(s => new StatusDto()
+				{
+					Id = s.Id,
+					Title = s.Title,
+					Tasks = taskLookup[s.Id]
+				})
+				.ToList();
 		}
 
 		[HttpPost("[action]")]
-		public async Task SaveBoardPriority([FromBody] Dictionary<Guid, List<Guid>> data)
+		public async Task SaveBoardChanges([FromBody] List<TaskDto> tasks)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2));
 
-			UpdatePriority();
+			_tasks = tasks;
 
-			await _hubContext.Clients.All.RefreshBoard(_statuses);
-
-			void UpdatePriority()
-			{
-				foreach ((Guid statusId, List<Guid> taskIds) in data)
-				{
-					StatusDto statusDto = _statuses.FirstOrDefault(s => s.Id == statusId);
-					if (statusDto == null)
-					{
-						continue;
-					}
-
-					for (int index = 0; index < taskIds.Count; index++)
-					{
-						Guid taskId = taskIds[index];
-						TaskDto task = statusDto.Tasks.FirstOrDefault(t => t.Id == taskId);
-						if (task != null)
-						{
-							task.Priority = index;
-						}
-					}
-
-					statusDto.Tasks = statusDto.Tasks.OrderBy(t => t.Priority).ToList();
-				}
-			}
+			List<StatusDto> statuses = GetStatuses();
+			await _hubContext.Clients.All.RefreshBoard(statuses);
 		}
 
 		private static List<TaskDto> CreateTasks()
 		{
 			Random rng = new Random();
-			int count = rng.Next(10);
+			int count = rng.Next(15, 30);
 
 			List<TaskDto> tasks = Enumerable.Range(1, count).Select(index =>
 				{
-					Guid id = Guid.NewGuid();
+					int id = GetUniqueId();
+					int statusIndex = rng.Next(_statuses.Count);
 					return new TaskDto()
 					{
 						Id = id,
-						Title = $"Реализовать отчет {id}",
-						Priority = index
+						Title = $"Реализовать отчет №{id}",
+						Priority = index,
+						StatusId = _statuses[statusIndex].Id,
 					};
 				})
 				.ToList();
 			return tasks;
+		}
+
+		private static int GetUniqueId()
+		{
+			return ++_uniqueId;
 		}
 	}
 }

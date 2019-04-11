@@ -2,6 +2,10 @@
 import { IAppThunkAction } from './';
 import * as HttpClient from '../httpClient'
 
+export interface IColumns {
+	[x: string]: HttpClient.TaskDto[]
+}
+
 const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null, board: [], backgroundWorks: 0 };
 
 export interface IBoardState {
@@ -27,11 +31,6 @@ interface IReceiveBoardAction {
 	board: HttpClient.StatusDto[];
 }
 
-interface IUpdateBoardAction {
-	type: 'UPDATE_BOARD';
-	data: { [key: string]: HttpClient.TaskDto[]};
-}
-
 interface ISetLoadingAction {
 	type: 'SET_BACKGROUND_WORK';
 	isBackgroundWork: boolean;
@@ -46,7 +45,7 @@ interface IReceiveAccessTokenAction {
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
 // declared type strings (and not any other arbitrary string).
 type KnownAction = IRequestBoardAction | IReceiveBoardAction | IReceiveAccessTokenAction
-	| ISetLoadingAction | IUpdateBoardAction;
+	| ISetLoadingAction;
 
 export const actionCreators = {
 	getAccessToken: (): IAppThunkAction<KnownAction> => (dispatch, getState) => {
@@ -60,8 +59,6 @@ export const actionCreators = {
 			.then((board: HttpClient.StatusDto[]) => {
 				dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
 			});
-
-
 //		if (startDateIndex === getState().weatherForecasts.startDateIndex) {
 //			// Don't issue a duplicate request (we already have or are loading the requested data)
 //			return;
@@ -75,21 +72,38 @@ export const actionCreators = {
 //
 //		dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
 	},
-	saveBoard: (rawData: { [key: string]: HttpClient.TaskDto[] })
-		: IAppThunkAction<KnownAction> => (dispatch, getState) => {
-		//dispatch({ type: 'SET_LOADING', isLoading: true });
-		dispatch({ type: 'UPDATE_BOARD', data: rawData });
+	saveBoard: (boardChanges: IColumns): IAppThunkAction<KnownAction> => (dispatch, getState) => {
 
-		const data: { [key: string]: string[]; } = {};
-		for (let statusId in rawData) {
-			if (rawData.hasOwnProperty(statusId)) {
-				data[statusId] = rawData[statusId].map((task) => task.id);
+		dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: true });
+
+		const board: HttpClient.StatusDto[] = Array.from(getState().board.board);
+		for (let statusId in boardChanges) {
+			if (boardChanges.hasOwnProperty(statusId)) {
+				const status = board.find((status: HttpClient.StatusDto) => status.id.toString() === statusId);
+				if (status) {
+					status.tasks = boardChanges[statusId];
+					for (let i = 0; i < status.tasks.length; i++) {
+						const task = status.tasks[i];
+						task.statusId = status.id;
+						task.priority = i;
+					}
+				}
+			}
+		}
+
+		dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
+
+		const tasks: HttpClient.TaskDto[] = [];
+		for (let j = 0; j < board.length; j++) {
+			const statusDto = board[j];
+			for (let k = 0; k < statusDto.tasks.length; k++) {
+				tasks.push(statusDto.tasks[k]);
 			}
 		}
 
 		const client: HttpClient.Client = createHttpClient('');
 		return client
-			.saveBoardPriority(data)
+			.saveBoardChanges(tasks)
 			.then(() => {
 				dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: false });
 			});
@@ -124,21 +138,6 @@ export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownA
 			board: action.board,
 			isLoading: false
 		};
-	}
-	if (action.type === 'UPDATE_BOARD') {
-		const newState = { ...state };
-		newState.backgroundWorks++;
-
-		for (let statusId in action.data) {
-			if (action.data.hasOwnProperty(statusId)) {
-				const status = newState.board.find((value: HttpClient.StatusDto) => value.id === statusId);
-				if (status) {
-					status.tasks = action.data[statusId];
-				}
-			}
-		}
-
-		return newState;
 	}
 
 	return state;

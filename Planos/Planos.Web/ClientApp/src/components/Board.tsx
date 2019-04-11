@@ -1,6 +1,6 @@
 ﻿import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { actionCreators, IBoardState } from '../store/BoardStore';
+import { actionCreators, IBoardState, IColumns } from '../store/BoardStore';
 import { Component } from 'react';
 import * as React from 'react';
 import {
@@ -33,22 +33,19 @@ const reorder = (list: HttpClient.TaskDto[], startIndex: number, endIndex: numbe
  * Moves an item from one list to another list.
  */
 const move =
-	(source: HttpClient.TaskDto[],
-		destination: HttpClient.TaskDto[],
+(source: HttpClient.TaskDto[],
+	destination: HttpClient.TaskDto[],
 	droppableSource: DraggableLocation,
 	droppableDestination?: DraggableLocation | null | undefined): IColumns => {
+
 	const sourceClone = Array.from(source);
 	const destClone = Array.from(destination);
 	const [removed] = sourceClone.splice(droppableSource.index, 1);
 
+	const result: IColumns = { [droppableSource.droppableId]: sourceClone };
+
 	if (droppableDestination) {
 		destClone.splice(droppableDestination.index, 0, removed);
-	}
-
-	const result: { [x: string]: HttpClient.TaskDto[] } = {};
-
-	result[droppableSource.droppableId] = sourceClone;
-	if (droppableDestination) {
 		result[droppableDestination.droppableId] = destClone;
 	}
 
@@ -82,10 +79,6 @@ interface IBoardProps {
 
 interface IState {
 	hubConnection: HubConnection;
-}
-
-interface IColumns {
-	[x: string]: HttpClient.TaskDto[]
 }
 
 type BoardProps = IBoardProps
@@ -136,11 +129,12 @@ class Board extends Component<BoardProps, IState> {
 	}
 
 	ensureDataFetched() {
-		//const startDateIndex = parseInt(this.props.match.params.startDateIndex, 10) || 0;
 		this.props.getBoard();
 	}
 
-	getList = (id: string): HttpClient.StatusDto | undefined => this.props.board.find(e => e.id === id);
+	getList = (id: string): HttpClient.StatusDto | undefined => this.props.board.find(e => e.id === parseInt(id));
+	getDroppableId = (id: number): string => id.toString();
+	getDraggableId = (id: number): string => `draggable_${id}`;
 
 	onDragEnd = (result: DropResult, provided: ResponderProvided) => {
 		const { source, destination }:
@@ -155,31 +149,29 @@ class Board extends Component<BoardProps, IState> {
 		if (sourceStatus == undefined) {
 			return;
 		}
+
+		let boardChanges: IColumns;
 		if (source.droppableId === destination.droppableId) {
-			const items = reorder(
+			const tasks = reorder(
 				sourceStatus!.tasks,
 				source.index,
 				destination.index
 			);
 
-			const state = { [source.droppableId]: items };
-
-			this.props.saveBoard(state);
+			boardChanges = { [source.droppableId]: tasks };
 		} else {
 			const destinationStatus = this.getList(destination.droppableId);
 			if (!destinationStatus) {
 				return;
 			}
-			const result = move(
+			boardChanges = move(
 				sourceStatus!.tasks,
 				destinationStatus!.tasks,
 				source,
 				destination
 			);
-
-			this.props.saveBoard(result);
 		}
-		//this.state.hubConnection.invoke('sendToAll', 'Bob', 'Hello!');
+		this.props.saveBoard(boardChanges);
 	};
 
 	getColumn = (status: HttpClient.StatusDto) => (
@@ -187,7 +179,7 @@ class Board extends Component<BoardProps, IState> {
 			<div>
 				{status.title}
 			</div>
-			<Droppable droppableId={status.id}>
+			<Droppable droppableId={this.getDroppableId(status.id)}>
 				{(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
 					<div
 						ref={provided.innerRef}
@@ -195,7 +187,7 @@ class Board extends Component<BoardProps, IState> {
 						{status.tasks.map((item, index) => (
 							<Draggable
 								key={item.id}
-								draggableId={item.id}
+								draggableId={this.getDraggableId(item.id)}
 								index={index}>
 								{(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
 									<div
