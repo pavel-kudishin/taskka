@@ -33,6 +33,7 @@
     <None Remove="ClientApp\src\components\Home.tsx" />
     <None Remove="ClientApp\src\components\Layout.tsx" />
     <None Remove="ClientApp\src\components\NavMenu.tsx" />
+    <None Remove="ClientApp\src\components\Task.tsx" />
     <None Remove="ClientApp\src\httpClient.ts" />
     <None Remove="ClientApp\src\index.tsx" />
     <None Remove="ClientApp\src\registerServiceWorker.ts" />
@@ -49,6 +50,7 @@
     <TypeScriptCompile Include="ClientApp\src\components\Home.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\Layout.tsx" />
     <TypeScriptCompile Include="ClientApp\src\components\NavMenu.tsx" />
+    <TypeScriptCompile Include="ClientApp\src\components\Task.tsx" />
     <TypeScriptCompile Include="ClientApp\src\httpClient.ts" />
     <TypeScriptCompile Include="ClientApp\src\index.tsx" />
     <TypeScriptCompile Include="ClientApp\src\registerServiceWorker.ts" />

@@ -1,6 +1,6 @@
 ﻿import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { actionCreators, IBoardState, IColumns } from '../store/BoardStore';
+import { actionCreators, IBoardState } from '../store/BoardStore';
 import { Component } from 'react';
 import * as React from 'react';
 import {
