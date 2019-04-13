@@ -1,7 +1,6 @@
-/solution/.vs
-/solution/Planos.Web/bin
-/solution/Planos.Web/obj
-/solution/Planos.Web/ClientApp/node_modules/.cache/babel-loader
 *.user
-/solution/Planos.Web/ClientApp/.idea
-/solution/Planos.Web/ClientApp/node_modules
+/solution/.vs
+/solution/Taskka.Web/bin
+/solution/Taskka.Web/obj
+/solution/Taskka.Web/ClientApp/node_modules
+/solution/Taskka.Web/ClientApp/.idea
