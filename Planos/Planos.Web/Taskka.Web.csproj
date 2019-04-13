@@ -40,6 +40,7 @@
     <None Remove="ClientApp\src\store\BoardStore.ts" />
     <None Remove="ClientApp\src\store\configureStore.ts" />
     <None Remove="ClientApp\src\store\index.ts" />
+    <None Remove="ClientApp\src\store\TaskStore.ts" />
     <None Remove="ClientApp\src\store\WeatherForecasts.ts" />
   </ItemGroup>
 
@@ -57,6 +58,7 @@
     <TypeScriptCompile Include="ClientApp\src\store\BoardStore.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\configureStore.ts" />
     <TypeScriptCompile Include="ClientApp\src\store\index.ts" />
+    <TypeScriptCompile Include="ClientApp\src\store\TaskStore.ts" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

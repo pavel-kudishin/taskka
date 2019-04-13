@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Taska.Web.Dto;
+using Taskka.Web.Dto;
 
-namespace Taska.Web.Hubs
+namespace Taskka.Web.Hubs
 {
 	public interface IBoardClient
 	{

@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Targets;
 using Swashbuckle.AspNetCore.Swagger;
-using Taska.Web.Hubs;
+using Taskka.Web.Hubs;
 
-namespace Planos.Web
+namespace Taskka.Web
 {
 	public class Startup
 	{

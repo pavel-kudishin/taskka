@@ -1,13 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Taska.Web.Dto;
-using Taska.Web.Hubs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Taskka.Web.Dto;
+using Taskka.Web.Hubs;
 
-namespace Planos.Web.Controllers
+namespace Taskka.Web.Controllers
 {
 	[Route("api/[controller]")]
 	public class DataController : Controller

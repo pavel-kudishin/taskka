@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Taska.Web.Dto
+namespace Taskka.Web.Dto
 {
 	public class BoardDto
 	{

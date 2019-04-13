@@ -3,13 +3,19 @@ import { IAppThunkAction, createHttpClient } from './';
 import * as HttpClient from '../httpClient'
 import { cloneDeep } from 'lodash';
 
+export interface IFormData {
+	id?: number;
+	title?: string;
+}
+
+
 export interface IColumns {
 	[x: string]: HttpClient.TaskDto[]
 }
 
-const initialState: IBoardState = { isLoading: false, isSuccess: true, token: null, board: undefined, backgroundWorks: 0 };
+const initialState: ITaskState = { isLoading: false, isSuccess: true, token: null, board: undefined, backgroundWorks: 0 };
 
-export interface IBoardState {
+export interface ITaskState {
 	isLoading: boolean;
 	backgroundWorks: number;
 	board?: HttpClient.BoardDto;
@@ -66,18 +72,18 @@ export const actionCreators = {
 			.then((board: HttpClient.BoardDto) => {
 				dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
 			});
-//		if (startDateIndex === getState().weatherForecasts.startDateIndex) {
-//			// Don't issue a duplicate request (we already have or are loading the requested data)
-//			return;
-//		}
-//
-//		dispatch({ type: requestWeatherForecastsType, startDateIndex });
-//
-//		const url = `api/SampleData/WeatherForecasts?startDateIndex=${startDateIndex}`;
-//		const response = await fetch(url);
-//		const forecasts = await response.json();
-//
-//		dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
+		//		if (startDateIndex === getState().weatherForecasts.startDateIndex) {
+		//			// Don't issue a duplicate request (we already have or are loading the requested data)
+		//			return;
+		//		}
+		//
+		//		dispatch({ type: requestWeatherForecastsType, startDateIndex });
+		//
+		//		const url = `api/SampleData/WeatherForecasts?startDateIndex=${startDateIndex}`;
+		//		const response = await fetch(url);
+		//		const forecasts = await response.json();
+		//
+		//		dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
 	},
 	refreshBoard: (board: HttpClient.BoardDto): IAppThunkAction<KnownAction> => (dispatch, getState) => {
 		dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
@@ -94,7 +100,7 @@ export const actionCreators = {
 	},
 };
 
-export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownAction) => {
+export const reducer: Reducer<ITaskState> = (state: ITaskState, action: KnownAction) => {
 	state = state || initialState;
 
 	if (action.type === 'SET_BACKGROUND_WORK') {
@@ -113,7 +119,7 @@ export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownA
 	}
 	if (action.type === 'RECEIVE_BOARD') {
 		const newState = cloneDeep(state);
-		newState.isSuccess= action.isSuccess;
+		newState.isSuccess = action.isSuccess;
 		newState.board = action.board;
 		newState.isLoading = false;
 		return newState;
@@ -133,4 +139,3 @@ export const reducer: Reducer<IBoardState> = (state: IBoardState, action: KnownA
 
 	return state;
 };
-
