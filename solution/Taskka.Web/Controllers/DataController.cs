@@ -18,22 +18,22 @@ namespace Taskka.Web.Controllers
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "План",
+				Title = "РџР»Р°РЅ",
 			},
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "В работе",
+				Title = "Р’ СЂР°Р±РѕС‚Рµ",
 			},
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "Тестирование",
+				Title = "РўРµСЃС‚РёСЂРѕРІР°РЅРёРµ",
 			},
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "Проверено",
+				Title = "РџСЂРѕРІРµСЂРµРЅРѕ",
 			},
 		};
 		private static List<TaskDto> _tasks = CreateTasks();
@@ -93,7 +93,7 @@ namespace Taskka.Web.Controllers
 					return new TaskDto()
 					{
 						Id = id,
-						Title = $"Реализовать отчет №{id}",
+						Title = $"Р РµР°Р»РёР·РѕРІР°С‚СЊ РѕС‚С‡РµС‚ в„–{id}",
 						Priority = index,
 						StatusId = _statuses[statusIndex].Id,
 					};
