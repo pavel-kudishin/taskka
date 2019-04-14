@@ -38,7 +38,7 @@ export default class NavMenu extends React.Component<NavMenuProps, INavMenuState
 		<header>
 			<Navbar className="navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3" light>
 				<Container>
-					<NavbarBrand tag={Link} to="/">Джина</NavbarBrand>
+					<NavbarBrand tag={Link} to="/">Taskka</NavbarBrand>
 					<NavbarToggler onClick={this.toggle} className="mr-2"/>
 					<Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={this.state.isOpen} navbar>
 						<ul className="navbar-nav flex-grow">

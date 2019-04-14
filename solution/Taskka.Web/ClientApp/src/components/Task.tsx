@@ -6,7 +6,8 @@ import { RouterState } from 'react-router-redux';
 import { IApplicationState } from '../store';
 import * as HttpClient from '../httpClient';
 import { actionCreators, ITaskState, IFormData } from '../store/TaskStore';
-import * as ReduxForm from "redux-form";
+import * as ReduxForm from 'redux-form';
+import { Helmet } from 'react-helmet';
 
 interface IState {
 }
@@ -28,16 +29,29 @@ class Task extends Component<TaskProps, IState> {
 	render() {
 		if (this.props.isLoading) {
 			return (
-				<div>Идет загрузка...</div>
+				<div>
+					<Helmet>
+						<title>Loading | Create task | Taskka</title>
+					</Helmet>
+					Идет загрузка...
+				</div>
 			);
 		}
 		if (!this.props.board) {
 			return (
-				<div>Нет данных</div>
+				<div>
+					<Helmet>
+						<title>Empty | Task | Taskka</title>
+					</Helmet>
+					Нет данных
+				</div>
 			);
 		}
 		return (
 			<div>
+				<Helmet>
+					<title>{this.props.backgroundWorks > 0 ? '... | ' : ''}Create task | Taskka</title>
+				</Helmet>
 				<div>{this.props.backgroundWorks > 0 ? 'Идет обмен данными...' : ' '}</div>
 			</div>
 		);

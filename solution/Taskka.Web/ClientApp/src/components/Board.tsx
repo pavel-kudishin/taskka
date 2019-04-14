@@ -19,6 +19,7 @@ import { RouterState } from 'react-router-redux';
 import { IApplicationState } from '../store';
 import * as HttpClient from '../httpClient';
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
+import { Helmet } from 'react-helmet';
 
 const grid = 8;
 
@@ -197,19 +198,33 @@ class Board extends Component<BoardProps, IState> {
 	// Normally you would want to split things out into separate components.
 	// But in this example everything is just done in one place for simplicity
 	render() {
+		const boardName = 'Main board';
 		if (this.props.isLoading) {
 			return (
-				<div>Идет загрузка...</div>
+				<div>
+					<Helmet>
+						<title>Loading | {boardName} | Taskka</title>
+					</Helmet>
+					Идет загрузка...
+				</div>
 				);
 		}
 		if (!this.props.board) {
 			return (
-				<div>Нет данных</div>
+				<div>
+					<Helmet>
+						<title>Empty | {boardName} | Taskka</title>
+					</Helmet>
+					Нет данных
+				</div>
 			);
 		}
 		const columns = this.props.board.statuses.map(this.getColumn);
 		return (
 			<div>
+				<Helmet>
+					<title>{this.props.backgroundWorks > 0 ? '... | ' : ''}{boardName} | Taskka</title>
+				</Helmet>
 				<div>{this.props.backgroundWorks > 0 ? 'Идет обмен данными...' : ' '}</div>
 				<DragDropContext onDragEnd={this.onDragEnd}>
 					<div className="row">
