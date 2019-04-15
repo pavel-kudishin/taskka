@@ -43,19 +43,19 @@ export default class NavMenu extends React.Component<NavMenuProps, INavMenuState
 					<Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={this.state.isOpen} navbar>
 						<ul className="navbar-nav flex-grow">
 							<NavItem>
-								<NavLink tag={Link} className="text-dark" to="/create-task">Создать задачу</NavLink>
+								<NavLink tag={Link} className="text-dark" to="/create-task">Create task</NavLink>
 							</NavItem>
 							<NavItem>
-								<NavLink tag={Link} className="text-dark" to="/board">Доска</NavLink>
+								<NavLink tag={Link} className="text-dark" to="/board">Board</NavLink>
 							</NavItem>
 							<NavItem>
-								<NavLink tag={Link} className="text-dark" to="/">Проекты</NavLink>
+								<NavLink tag={Link} className="text-dark" to="/">Projects</NavLink>
 							</NavItem>
 							<NavItem>
-								<NavLink tag={Link} className="text-dark" to="/counter">Пользователи</NavLink>
+								<NavLink tag={Link} className="text-dark" to="/counter">Users</NavLink>
 							</NavItem>
 							<NavItem>
-								<NavLink tag={Link} className="text-dark" to="/fetch-data">Задачи</NavLink>
+								<NavLink tag={Link} className="text-dark" to="/fetch-data">Tasks</NavLink>
 							</NavItem>
 						</ul>
 					</Collapse>

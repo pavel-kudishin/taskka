@@ -13,7 +13,6 @@ interface IState {
 }
 
 interface ITaskProps {
-
 }
 
 type TaskProps = ITaskProps
@@ -25,34 +24,52 @@ type TaskProps = ITaskProps
 class Task extends Component<TaskProps, IState> {
 	constructor(props: TaskProps) {
 		super(props);
+		this.mySubmitFunction = this.mySubmitFunction.bind(this);
 	}
+
+	mySubmitFunction(values: IFormData): void {
+		const task: HttpClient.TaskDto = new HttpClient.TaskDto({
+				title: values.title||'', id: 0, priority: 0, statusId: 0
+			});
+		this.props.saveTask(task);
+		this.props.reset();
+	}
+
 	render() {
-		if (this.props.isLoading) {
+		if (this.props.isSaving) {
 			return (
 				<div>
 					<Helmet>
-						<title>Loading | Create task | Taskka</title>
+						<title>Saving | Create task | Taskka</title>
 					</Helmet>
-					Идет загрузка...
+					Saving...
 				</div>
 			);
 		}
-		if (!this.props.board) {
-			return (
-				<div>
-					<Helmet>
-						<title>Empty | Task | Taskka</title>
-					</Helmet>
-					Нет данных
-				</div>
-			);
-		}
+		const { handleSubmit, pristine, reset, submitting } = this.props;
 		return (
 			<div>
 				<Helmet>
 					<title>{this.props.backgroundWorks > 0 ? '... | ' : ''}Create task | Taskka</title>
 				</Helmet>
 				<div>{this.props.backgroundWorks > 0 ? 'Идет обмен данными...' : ' '}</div>
+				<form onSubmit={this.props.handleSubmit(this.mySubmitFunction)}>
+					<div>
+						<label>Title</label>
+						<div>
+							<ReduxForm.Field
+								name="title"
+								component="input"
+								type="text"
+								placeholder="Task title" />
+						</div>
+					</div>
+					<div>
+						<button type="submit" disabled={pristine || submitting} className="btn btn-primary btn-sm">
+							Save
+						</button>
+					</div>
+				</form>
 			</div>
 		);
 	}
@@ -69,7 +86,7 @@ const taskForm: ReduxForm.DecoratedComponentClass<{}, TaskProps & Partial<ReduxF
 
 // Wire up the React component to the Redux store
 let mapStateToProps = (state: IApplicationState, ownProps: any): TaskProps => {
-	const result = Object.assign({}, state.board, state.routing) as TaskProps;
+	const result = Object.assign({}, state.task, state.routing) as TaskProps;
 	return result;
 };
 

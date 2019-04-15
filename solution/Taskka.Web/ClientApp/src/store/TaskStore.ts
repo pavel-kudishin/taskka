@@ -13,14 +13,12 @@ export interface IColumns {
 	[x: string]: HttpClient.TaskDto[]
 }
 
-const initialState: ITaskState = { isLoading: false, isSuccess: true, token: null, board: undefined, backgroundWorks: 0 };
+const initialState: ITaskState = { isSaving: false, isSuccess: true, backgroundWorks: 0 };
 
 export interface ITaskState {
-	isLoading: boolean;
+	isSaving: boolean;
 	backgroundWorks: number;
-	board?: HttpClient.BoardDto;
 	isSuccess: boolean;
-	token: string | null;
 }
 
 
@@ -28,74 +26,26 @@ export interface ITaskState {
 // ACTIONS - These are serializable (hence replayable) descriptions of state transitions.
 // They do not themselves have any side-effects; they just describe something that is going to happen.
 
-interface IRequestBoardAction {
-	type: 'REQUEST_BOARD';
+interface ISavingTaskAction {
+	type: 'TASK/SAVING_TASK';
 }
 
-interface IReceiveBoardAction {
-	type: 'RECEIVE_BOARD';
-	isSuccess: boolean;
-	board: HttpClient.BoardDto;
-}
-
-interface ISetLoadingAction {
-	type: 'SET_BACKGROUND_WORK';
-	isBackgroundWork: boolean;
-}
-
-interface IReceiveAccessTokenAction {
-	type: 'RECEIVE_ACCESS_TOKEN';
-	token: string | undefined;
-}
-
-interface IUpdateTaskAction {
-	type: 'UPDATE_TASK';
-	taskId: number;
-	priority: number;
-	statusId: number;
+interface ITaskSavedAction {
+	type: 'TASK/TASK_SAVED';
 }
 
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
 // declared type strings (and not any other arbitrary string).
-type KnownAction = IRequestBoardAction | IReceiveBoardAction | IReceiveAccessTokenAction
-	| ISetLoadingAction | IUpdateTaskAction;
+type KnownAction = ITaskSavedAction | ISavingTaskAction;
 
 export const actionCreators = {
-	getAccessToken: (): IAppThunkAction<KnownAction> => (dispatch, getState) => {
-	},
-	getBoard: (): IAppThunkAction<KnownAction> => (dispatch, getState) => {
-		dispatch({ type: 'REQUEST_BOARD' });
-
+	saveTask: (task: HttpClient.TaskDto): IAppThunkAction<KnownAction> => (dispatch, getState) => {
+		dispatch({ type: 'TASK/SAVING_TASK' });
 		const client: HttpClient.Client = createHttpClient('');
 		return client
-			.getBoard()
-			.then((board: HttpClient.BoardDto) => {
-				dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
-			});
-		//		if (startDateIndex === getState().weatherForecasts.startDateIndex) {
-		//			// Don't issue a duplicate request (we already have or are loading the requested data)
-		//			return;
-		//		}
-		//
-		//		dispatch({ type: requestWeatherForecastsType, startDateIndex });
-		//
-		//		const url = `api/SampleData/WeatherForecasts?startDateIndex=${startDateIndex}`;
-		//		const response = await fetch(url);
-		//		const forecasts = await response.json();
-		//
-		//		dispatch({ type: receiveWeatherForecastsType, startDateIndex, forecasts });
-	},
-	refreshBoard: (board: HttpClient.BoardDto): IAppThunkAction<KnownAction> => (dispatch, getState) => {
-		dispatch({ type: 'RECEIVE_BOARD', isSuccess: true, board: board });
-	},
-	updateTask: (taskId: number, priority: number, statusId: number): IAppThunkAction<KnownAction> => (dispatch, getState) => {
-		dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: true });
-		dispatch({ type: 'UPDATE_TASK', taskId: taskId, priority: priority, statusId: statusId });
-		const client: HttpClient.Client = createHttpClient('');
-		return client
-			.updateTask(taskId, priority, statusId)
+			.saveTask(task)
 			.then(() => {
-				dispatch({ type: 'SET_BACKGROUND_WORK', isBackgroundWork: false });
+				dispatch({ type: 'TASK/TASK_SAVED' });
 			});
 	},
 };
@@ -103,37 +53,14 @@ export const actionCreators = {
 export const reducer: Reducer<ITaskState> = (state: ITaskState, action: KnownAction) => {
 	state = state || initialState;
 
-	if (action.type === 'SET_BACKGROUND_WORK') {
+	if (action.type === 'TASK/SAVING_TASK') {
 		const newState = cloneDeep(state);
-		if (action.isBackgroundWork) {
-			newState.backgroundWorks++;
-		} else {
-			newState.backgroundWorks--;
-		}
+		newState.isSaving = true;
 		return newState;
 	}
-	if (action.type === 'REQUEST_BOARD') {
+	if (action.type === 'TASK/TASK_SAVED') {
 		const newState = cloneDeep(state);
-		newState.isLoading = true;
-		return newState;
-	}
-	if (action.type === 'RECEIVE_BOARD') {
-		const newState = cloneDeep(state);
-		newState.isSuccess = action.isSuccess;
-		newState.board = action.board;
-		newState.isLoading = false;
-		return newState;
-	}
-	if (action.type === 'UPDATE_TASK') {
-		const newState = cloneDeep(state);
-		if (newState.board) {
-			const task = newState.board.tasks.find((t: HttpClient.TaskDto) => t.id === action.taskId);
-			if (task) {
-				task.priority = action.priority;
-				task.statusId = action.statusId;
-			}
-
-		}
+		newState.isSaving = false;
 		return newState;
 	}
 

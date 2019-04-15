@@ -1,6 +1,7 @@
 ﻿import { RouterState } from 'react-router-redux';
 import { IBoardState } from './BoardStore';
-import * as HttpClient from '../httpClient'
+import { ITaskState } from './TaskStore';
+import * as HttpClient from '../httpClient';
 
 export type ThunkAction<TAction> = (action: TAction) => void;
 
@@ -12,10 +13,8 @@ export interface IAppThunkAction<TAction> {
 
 // The top-level state object
 export interface IApplicationState {
-	//alerts: IAlertsState,
-	//confirm: IConfirmState,
-	//settings: SettingsState.ISettingsState;
 	board: IBoardState;
+	task: ITaskState;
 	routing: RouterState;
 }
 

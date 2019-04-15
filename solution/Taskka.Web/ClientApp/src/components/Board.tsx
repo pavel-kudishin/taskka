@@ -21,7 +21,7 @@ import * as HttpClient from '../httpClient';
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { Helmet } from 'react-helmet';
 
-const grid = 8;
+const grid = 4;
 
 const getItemStyle = (isDragging: boolean, draggableStyle: any): React.CSSProperties => ({
 	// some basic styles to make the items look a bit nicer
@@ -39,7 +39,7 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any): React.CSSProper
 const getListStyle = (isDraggingOver: boolean) => ({
 	background: isDraggingOver ? 'lightblue' : 'lightgrey',
 	padding: grid,
-	width: 250
+	//width: 100
 });
 
 const getPriority = (index: number, tasks: HttpClient.TaskDto[]): number => {
@@ -159,8 +159,8 @@ class Board extends Component<BoardProps, IState> {
 		const droppableId = this.getDroppableId(status.id);
 		const tasks = this.getColumnTasks(droppableId);
 		return (
-			<div className="col-sm-3" key={status.id}>
-				<div>
+			<div className="col" key={status.id} style={{minWidth: '150px', maxWidth: '300px', padding: '0px 2px 10px 2px'}}>
+				<div style={{backgroundColor: 'lightblue', paddingLeft: '8px'}}>
 					{status.title}
 				</div>
 				<Droppable droppableId={droppableId}>

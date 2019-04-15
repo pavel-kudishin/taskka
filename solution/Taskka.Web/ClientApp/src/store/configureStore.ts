@@ -8,7 +8,9 @@ import {
 import thunk from 'redux-thunk';
 import { routerReducer, routerMiddleware } from 'react-router-redux';
 import { History } from 'history';
-import * as Board from './BoardStore'
+import * as Board from './BoardStore';
+import * as Task from './TaskStore';
+import { reducer as formReducer } from 'redux-form'
 
 export interface IInitialState {
 }
@@ -20,7 +22,9 @@ export interface IWindow {
 
 export default function configureStore(history: History, initialState: IInitialState) {
 	const reducers = {
-		board: Board.reducer
+		board: Board.reducer,
+		task: Task.reducer,
+		form: formReducer,
 	};
 
 	const middleware = [

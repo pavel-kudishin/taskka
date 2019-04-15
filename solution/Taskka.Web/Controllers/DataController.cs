@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Taskka.Web.Dto;
 using Taskka.Web.Hubs;
 
@@ -18,22 +18,47 @@ namespace Taskka.Web.Controllers
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "План",
+				Title = "Backlog",
 			},
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "В работе",
+				Title = "Planned",
 			},
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "Тестирование",
+				Title = "Reopened",
 			},
 			new StatusDto()
 			{
 				Id = GetUniqueId(),
-				Title = "Проверено",
+				Title = "Analysis",
+			},
+			new StatusDto()
+			{
+				Id = GetUniqueId(),
+				Title = "In Progress",
+			},
+			new StatusDto()
+			{
+				Id = GetUniqueId(),
+				Title = "Review",
+			},
+			new StatusDto()
+			{
+				Id = GetUniqueId(),
+				Title = "Testing",
+			},
+			new StatusDto()
+			{
+				Id = GetUniqueId(),
+				Title = "Ready To Prod",
+			},
+			new StatusDto()
+			{
+				Id = GetUniqueId(),
+				Title = "Done",
 			},
 		};
 		private static List<TaskDto> _tasks = CreateTasks();
@@ -47,7 +72,7 @@ namespace Taskka.Web.Controllers
 		[HttpGet("[action]")]
 		public async Task<BoardDto> GetBoard()
 		{
-			await Task.Delay(TimeSpan.FromSeconds(2));
+			//await Task.Delay(TimeSpan.FromSeconds(2));
 
 			BoardDto board = new BoardDto()
 			{
@@ -81,10 +106,45 @@ namespace Taskka.Web.Controllers
 			await _hubContext.Clients.All.RefreshBoard(board);
 		}
 
+		[HttpPost("[action]")]
+		public async Task SaveTask([FromBody]TaskDto task)
+		{
+			await Task.Delay(TimeSpan.FromSeconds(2));
+
+			TaskDto existingTask = _tasks.FirstOrDefault(t => t.Id == task.Id);
+			if (existingTask == null)
+			{
+				existingTask = new TaskDto()
+				{
+					Id = GetUniqueId()
+				};
+				_tasks.Add(existingTask);
+			}
+
+			int backlogStatusId = _statuses[0].Id;
+			decimal maxPriority = _tasks
+				.Where(t => t.StatusId == backlogStatusId)
+				.OrderByDescending(t => t.Priority)
+				.Select(t => t.Priority)
+				.FirstOrDefault();
+
+			existingTask.Title = task.Title;
+			existingTask.Priority = maxPriority + 1;
+			existingTask.StatusId = backlogStatusId;
+
+			BoardDto board = new BoardDto()
+			{
+				Statuses = _statuses,
+				Tasks = _tasks
+			};
+
+			await _hubContext.Clients.All.RefreshBoard(board);
+		}
+
 		private static List<TaskDto> CreateTasks()
 		{
 			Random rng = new Random();
-			int count = rng.Next(15, 30);
+			int count = rng.Next(20, 40);
 
 			List<TaskDto> tasks = Enumerable.Range(1, count).Select(index =>
 				{

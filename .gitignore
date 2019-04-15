@@ -4,3 +4,4 @@
 /solution/Taskka.Web/obj
 /solution/Taskka.Web/ClientApp/node_modules
 /solution/Taskka.Web/ClientApp/.idea
+/solution/*.DotSettings
