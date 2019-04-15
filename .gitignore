@@ -1,5 +1,7 @@
 *.user
 /solution/.vs
+/solution/Taskka.Core/bin
+/solution/Taskka.Core/obj
 /solution/Taskka.Web/bin
 /solution/Taskka.Web/obj
 /solution/Taskka.Web/ClientApp/node_modules

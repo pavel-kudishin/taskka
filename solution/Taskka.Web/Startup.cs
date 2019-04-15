@@ -2,12 +2,18 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Targets;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
+using Taskka.Core.DataProviders;
+using Taskka.Core.Models;
+using Taskka.Core.Services;
 using Taskka.Web.Hubs;
 
 namespace Taskka.Web
@@ -39,8 +45,23 @@ namespace Taskka.Web
 			services
 				.AddMvc()
 				.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+			services.AddMemoryCache();
 
 			services.AddSignalR(options => {});
+
+			services.AddDbContext<TaskkaDbContext>(
+				options =>
+				{
+					string connectionString = Configuration.GetConnectionString("TaskkaDb");
+					Action<SqlServerDbContextOptionsBuilder> optionsAction = builder =>
+					{
+						//builder.UseRowNumberForPaging();
+						builder.CommandTimeout(600);
+					};
+					options.UseSqlServer(connectionString, optionsAction)
+						.EnableDetailedErrors()
+						.EnableSensitiveDataLogging();
+				});
 
 			// In production, the React files will be served from this directory
 			services.AddSpaStaticFiles(configuration =>
@@ -60,6 +81,10 @@ namespace Taskka.Web
 					});
 					//options.OperationFilter<CustomOperationFilter>();
 				});
+
+			services.AddTransient<ITaskService, TaskService>();
+			services.AddTransient<ITaskProvider, TaskProvider>();
+
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
