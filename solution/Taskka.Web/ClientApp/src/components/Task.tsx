@@ -8,6 +8,7 @@ import * as HttpClient from '../httpClient';
 import { actionCreators, ITaskState, IFormData } from '../store/TaskStore';
 import * as ReduxForm from 'redux-form';
 import { Helmet } from 'react-helmet';
+import Spinners from './Spinners';
 
 interface IState {
 }
@@ -42,7 +43,7 @@ class Task extends Component<TaskProps, IState> {
 					<Helmet>
 						<title>Saving | Create task | Taskka</title>
 					</Helmet>
-					Saving...
+					<Spinners.Spinner />
 				</div>
 			);
 		}

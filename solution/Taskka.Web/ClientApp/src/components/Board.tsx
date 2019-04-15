@@ -20,6 +20,7 @@ import { IApplicationState } from '../store';
 import * as HttpClient from '../httpClient';
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { Helmet } from 'react-helmet';
+import Spinners from './Spinners';
 
 const grid = 4;
 
@@ -205,7 +206,7 @@ class Board extends Component<BoardProps, IState> {
 					<Helmet>
 						<title>Loading | {boardName} | Taskka</title>
 					</Helmet>
-					Идет загрузка...
+					<Spinners.Spinner />
 				</div>
 				);
 		}
@@ -215,7 +216,7 @@ class Board extends Component<BoardProps, IState> {
 					<Helmet>
 						<title>Empty | {boardName} | Taskka</title>
 					</Helmet>
-					Нет данных
+					No data
 				</div>
 			);
 		}
@@ -225,12 +226,12 @@ class Board extends Component<BoardProps, IState> {
 				<Helmet>
 					<title>{this.props.backgroundWorks > 0 ? '... | ' : ''}{boardName} | Taskka</title>
 				</Helmet>
-				<div>{this.props.backgroundWorks > 0 ? 'Идет обмен данными...' : ' '}</div>
 				<DragDropContext onDragEnd={this.onDragEnd}>
 					<div className="row">
 						{columns}
 					</div>
 				</DragDropContext>
+				<div>{this.props.backgroundWorks > 0 ? <Spinners.LoadingBar /> : ' '}</div>
 			</div>
 		);
 	}
