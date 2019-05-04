@@ -162,7 +162,7 @@ class Board extends Component<BoardProps, IState> {
 		return (
 			<div className="col" key={status.id} style={{minWidth: '150px', maxWidth: '300px', padding: '0px 2px 10px 2px'}}>
 				<div style={{backgroundColor: 'lightblue', paddingLeft: '8px'}}>
-					{status.title}
+					{status.name}
 				</div>
 				<Droppable droppableId={droppableId}>
 					{(provided: DroppableProvided, snapshot: DroppableStateSnapshot) => (
@@ -183,7 +183,7 @@ class Board extends Component<BoardProps, IState> {
 													snapshot.isDragging,
 													provided.draggableProps.style
 												)}>
-											{item.title}
+											{item.summary}
 										</div>
 									)}
 								</Draggable>

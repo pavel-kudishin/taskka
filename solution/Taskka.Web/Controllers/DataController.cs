@@ -1,9 +1,13 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Taskka.Core.BusinessObjects;
+using Taskka.Core.Services;
 using Taskka.Web.Dto;
 using Taskka.Web.Hubs;
 
@@ -12,61 +16,17 @@ namespace Taskka.Web.Controllers
 	[Route("api/[controller]")]
 	public class DataController : Controller
 	{
+		private const int BOARD_ID = 1;
 		private readonly IHubContext<BoardHub, IBoardClient> _hubContext;
-		private static readonly List<StatusDto> _statuses = new List<StatusDto>()
-		{
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Backlog",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Planned",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Reopened",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Analysis",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "In Progress",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Review",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Testing",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Ready To Prod",
-			},
-			new StatusDto()
-			{
-				Id = GetUniqueId(),
-				Title = "Done",
-			},
-		};
-		private static List<TaskDto> _tasks = CreateTasks();
-		private static int _uniqueId;
+		private readonly ITaskService _taskService;
+		private readonly IMapper _mapper;
 
-		public DataController(IHubContext<BoardHub, IBoardClient> hubContext)
+		public DataController(IHubContext<BoardHub, IBoardClient> hubContext,
+			ITaskService taskService, IMapper mapper)
 		{
 			_hubContext = hubContext;
+			_taskService = taskService;
+			_mapper = mapper;
 		}
 
 		[HttpGet("[action]")]
@@ -74,13 +34,16 @@ namespace Taskka.Web.Controllers
 		{
 			//await Task.Delay(TimeSpan.FromSeconds(2));
 
-			BoardDto board = new BoardDto()
-			{
-				Statuses = _statuses,
-				Tasks = _tasks
-			};
+			BoardDto boardDto = await GetBoardAsync();
+			return boardDto;
+		}
 
-			return board;
+		private async Task<BoardDto> GetBoardAsync()
+		{
+			BoardBo boardBo = await _taskService.GetBoardAsync(BOARD_ID);
+			BoardDto boardDto = _mapper.Map<BoardDto>(boardBo);
+			boardDto.Tasks = _mapper.Map<List<TaskDto>>(boardBo.Statuses.SelectMany(s => s.Tasks));
+			return boardDto;
 		}
 
 		[HttpPost("[action]")]
@@ -88,83 +51,32 @@ namespace Taskka.Web.Controllers
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2));
 
-			TaskDto task = _tasks.FirstOrDefault(t => t.Id == taskId);
-			if (task == null)
-			{
-				return;
-			}
+			await _taskService.UpdateTaskAsync(taskId, priority, statusId);
 
-			task.Priority = priority;
-			task.StatusId = statusId;
-
-			BoardDto board = new BoardDto()
-			{
-				Statuses = _statuses,
-				Tasks = _tasks
-			};
-
-			await _hubContext.Clients.All.RefreshBoard(board);
+			BoardDto boardDto = await GetBoardAsync();
+			await _hubContext.Clients.All.RefreshBoard(boardDto);
 		}
 
 		[HttpPost("[action]")]
 		public async Task SaveTask([FromBody]TaskDto task)
 		{
-			await Task.Delay(TimeSpan.FromSeconds(2));
+			//await Task.Delay(TimeSpan.FromSeconds(2));
 
-			TaskDto existingTask = _tasks.FirstOrDefault(t => t.Id == task.Id);
-			if (existingTask == null)
+			try
 			{
-				existingTask = new TaskDto()
-				{
-					Id = GetUniqueId()
-				};
-				_tasks.Add(existingTask);
+				TaskBo taskBo = _mapper.Map<TaskBo>(task);
+				await _taskService.SaveTaskAsync(taskBo);
+			}
+			catch (DbUpdateException e)
+			{
+
+			}
+			catch (Exception e)
+			{
 			}
 
-			int backlogStatusId = _statuses[0].Id;
-			decimal maxPriority = _tasks
-				.Where(t => t.StatusId == backlogStatusId)
-				.OrderByDescending(t => t.Priority)
-				.Select(t => t.Priority)
-				.FirstOrDefault();
-
-			existingTask.Title = task.Title;
-			existingTask.Priority = maxPriority + 1;
-			existingTask.StatusId = backlogStatusId;
-
-			BoardDto board = new BoardDto()
-			{
-				Statuses = _statuses,
-				Tasks = _tasks
-			};
-
-			await _hubContext.Clients.All.RefreshBoard(board);
-		}
-
-		private static List<TaskDto> CreateTasks()
-		{
-			Random rng = new Random();
-			int count = rng.Next(20, 40);
-
-			List<TaskDto> tasks = Enumerable.Range(1, count).Select(index =>
-				{
-					int id = GetUniqueId();
-					int statusIndex = rng.Next(_statuses.Count);
-					return new TaskDto()
-					{
-						Id = id,
-						Title = $"Реализовать отчет №{id}",
-						Priority = index,
-						StatusId = _statuses[statusIndex].Id,
-					};
-				})
-				.ToList();
-			return tasks;
-		}
-
-		private static int GetUniqueId()
-		{
-			return ++_uniqueId;
+			BoardDto boardDto = await GetBoardAsync();
+			await _hubContext.Clients.All.RefreshBoard(boardDto);
 		}
 	}
 }

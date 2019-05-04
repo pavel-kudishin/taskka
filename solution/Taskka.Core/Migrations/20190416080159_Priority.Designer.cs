@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Taskka.Core.Models;
 
 namespace Taskka.Core.Migrations
 {
     [DbContext(typeof(TaskkaDbContext))]
-    partial class TaskkaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190416080159_Priority")]
+    partial class Priority
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

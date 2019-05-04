@@ -136,6 +136,8 @@ export class Client {
 }
 
 export class BoardDto implements IBoardDto {
+	id!: number;
+	name!: string;
 	statuses!: StatusDto[];
 	tasks!: TaskDto[];
 
@@ -154,6 +156,8 @@ export class BoardDto implements IBoardDto {
 
 	init(data?: any) {
 		if (data) {
+			this.id = data["id"];
+			this.name = data["name"];
 			if (data["statuses"] && data["statuses"].constructor === Array) {
 				this.statuses = [] as any;
 				for (let item of data["statuses"])
@@ -176,6 +180,8 @@ export class BoardDto implements IBoardDto {
 
 	toJSON(data?: any) {
 		data = typeof data === 'object' ? data : {};
+		data["id"] = this.id;
+		data["name"] = this.name;
 		if (this.statuses && this.statuses.constructor === Array) {
 			data["statuses"] = [];
 			for (let item of this.statuses)
@@ -191,13 +197,15 @@ export class BoardDto implements IBoardDto {
 }
 
 export interface IBoardDto {
+	id: number;
+	name: string;
 	statuses: StatusDto[];
 	tasks: TaskDto[];
 }
 
 export class StatusDto implements IStatusDto {
 	id!: number;
-	title!: string;
+	name!: string;
 
 	constructor(data?: IStatusDto) {
 		if (data) {
@@ -211,7 +219,7 @@ export class StatusDto implements IStatusDto {
 	init(data?: any) {
 		if (data) {
 			this.id = data["id"];
-			this.title = data["title"];
+			this.name = data["name"];
 		}
 	}
 
@@ -225,19 +233,19 @@ export class StatusDto implements IStatusDto {
 	toJSON(data?: any) {
 		data = typeof data === 'object' ? data : {};
 		data["id"] = this.id;
-		data["title"] = this.title;
+		data["name"] = this.name;
 		return data;
 	}
 }
 
 export interface IStatusDto {
 	id: number;
-	title: string;
+	name: string;
 }
 
 export class TaskDto implements ITaskDto {
 	id!: number;
-	title!: string;
+	summary!: string;
 	priority!: number;
 	statusId!: number;
 
@@ -253,7 +261,7 @@ export class TaskDto implements ITaskDto {
 	init(data?: any) {
 		if (data) {
 			this.id = data["id"];
-			this.title = data["title"];
+			this.summary = data["summary"];
 			this.priority = data["priority"];
 			this.statusId = data["statusId"];
 		}
@@ -269,7 +277,7 @@ export class TaskDto implements ITaskDto {
 	toJSON(data?: any) {
 		data = typeof data === 'object' ? data : {};
 		data["id"] = this.id;
-		data["title"] = this.title;
+		data["summary"] = this.summary;
 		data["priority"] = this.priority;
 		data["statusId"] = this.statusId;
 		return data;
@@ -278,7 +286,7 @@ export class TaskDto implements ITaskDto {
 
 export interface ITaskDto {
 	id: number;
-	title: string;
+	summary: string;
 	priority: number;
 	statusId: number;
 }

@@ -5,7 +5,7 @@ import { cloneDeep } from 'lodash';
 
 export interface IFormData {
 	id?: number;
-	title?: string;
+	summary?: string;
 }
 
 

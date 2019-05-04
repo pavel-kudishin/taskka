@@ -30,7 +30,7 @@ class Task extends Component<TaskProps, IState> {
 
 	mySubmitFunction(values: IFormData): void {
 		const task: HttpClient.TaskDto = new HttpClient.TaskDto({
-				title: values.title||'', id: 0, priority: 0, statusId: 0
+				summary: values.summary || '', id: 0, priority: 0, statusId: 0
 			});
 		this.props.saveTask(task);
 		this.props.reset();
@@ -59,7 +59,7 @@ class Task extends Component<TaskProps, IState> {
 						<label>Title</label>
 						<div>
 							<ReduxForm.Field
-								name="title"
+								name="summary"
 								component="input"
 								type="text"
 								placeholder="Task title" />

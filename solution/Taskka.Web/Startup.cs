@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -81,6 +82,7 @@ namespace Taskka.Web
 					});
 					//options.OperationFilter<CustomOperationFilter>();
 				});
+			services.AddAutoMapper();
 
 			services.AddTransient<ITaskService, TaskService>();
 			services.AddTransient<ITaskProvider, TaskProvider>();

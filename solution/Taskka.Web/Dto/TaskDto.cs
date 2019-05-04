@@ -7,7 +7,7 @@ namespace Taskka.Web.Dto
 		[Required]
 		public int Id { get; set; }
 		[Required]
-		public string Title { get; set; }
+		public string Summary { get; set; }
 
 		[Required]
 		public decimal Priority { get; set; }

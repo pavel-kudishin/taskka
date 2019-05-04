@@ -71,4 +71,19 @@ END;
 
 GO
 
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20190416080159_Priority')
+BEGIN
+    ALTER TABLE [Tasks] ADD [Priority] decimal(18,2) NOT NULL DEFAULT 0.0;
+END;
+
+GO
+
+IF NOT EXISTS(SELECT * FROM [__EFMigrationsHistory] WHERE [MigrationId] = N'20190416080159_Priority')
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20190416080159_Priority', N'2.2.4-servicing-10062');
+END;
+
+GO
+
 COMMIT TRAN tr1
